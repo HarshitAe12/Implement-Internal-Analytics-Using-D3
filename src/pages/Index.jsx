@@ -3,14 +3,11 @@ import {
   mockMetrics,
   mockDailyLogins,
   mockMonthlySearches,
-  mockFailedSearches,
-  mockCityAnalytics,
-  nodes,
-  links,
+  mockFailedSearches
 } from "../data/mockData";
 import DateRangeFilter from "../components/dashboard/DateRangeFilter";
 import MetricCard from "../components/dashboard/MetricCard";
-import getLastMonthDateRange, { fetchAllProfilesViewCount, fetchCityAnalitics, fetchConnections, fetchMostSearchUsers, fetchMostViewedProfiles, fetchProfessionAnalytics, fetchSearchCount } from "../utils/api";
+import  { fetchAllProfilesViewCount, fetchCityAnalitics, fetchConnections, fetchMostSearchUsers, fetchMostViewedProfiles, fetchProfessionAnalytics, fetchSearchCount } from "../utils/api";
 import { showToast } from "@/utils/showToast";
 import MostViewedProfile from "@/components/dashboard/MostViewedProfile";
 import MostSearchUser from "@/components/dashboard/MostSearchUser";
@@ -21,11 +18,6 @@ import CityAnalytics from "@/components/dashboard/CityAnalytics";
 import { mapSearchCountToMetricCard } from "@/utils/formatters";
 
 const Index = () => {
-  const cityBarData = mockCityAnalytics.most_viewed_cities.map((c) => ({
-    label: c.viewed_profile_city_code,
-    value: c.count,
-  }));
-
 
   const defaultRange = (() => {
     const end = new Date();
