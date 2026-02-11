@@ -7,7 +7,7 @@ import {
 } from "../data/mockData";
 import DateRangeFilter from "../components/dashboard/DateRangeFilter";
 import MetricCard from "../components/dashboard/MetricCard";
-import { fetchAllProfilesViewCount, fetchCityAnalitics, fetchConnections, fetchMostSearchUsers, fetchMostViewedProfiles, fetchProfessionAnalytics, fetchSearchCount } from "../utils/api";
+import { fetchAllProfilesViewCount, fetchCityAnalitics, fetchConnections, fetchEngagement, fetchMostSearchUsers, fetchMostViewedProfiles, fetchProfessionAnalytics, fetchSearchCount, fetchTopCity, fetchTopProfession, fetchTotalViews } from "../utils/api";
 import { showToast } from "@/utils/showToast";
 import MostViewedProfile from "@/components/dashboard/MostViewedProfile";
 import MostSearchUser from "@/components/dashboard/MostSearchUser";
@@ -15,7 +15,7 @@ import ProfessionAnalyticChart from "@/components/dashboard/ProfessionAnalyticCh
 import Spinner from "@/utils/Spinner";
 import D3NetworkGraph from "@/components/dashboard/UserConnectionGraph";
 import CityAnalytics from "@/components/dashboard/CityAnalytics";
-import { mapSearchCountToMetricCard } from "@/utils/formatters";
+import { mapEngToMetricCard, mapSearchCountToMetricCard, mapTopCityToMetricCard, mapTopProfToMetricCard, mapTotalVieCountToMetricCard } from "@/utils/formatters";
 
 const Index = () => {
 
@@ -51,11 +51,11 @@ const Index = () => {
 
   // HEADER CARDS 
 
-  const [totalProfileViews, setTotalProfileViews] = useState(0);
-  const [totalViewsLoading, setTotalViewsLoading] = useState(false)
-
+  const [totalViews, setTotalViews] = useState(null);
   const [searchMetric, setSearchMetric] = useState(null);
-  const [totalSearchLoading, setTotalSearchLoading] = useState(false)
+  const [topCity, setTopCity] = useState(null);
+  const [topProf, setTopProf] = useState(null);
+  const [eng, setEng] = useState(null);
 
 
   useEffect(() => {
@@ -76,7 +76,7 @@ const Index = () => {
       end_date: dateRange.end,
     });
 
-    totalProfileViewCount({
+    totalViewCount({
       start_date: dateRange.start,
       end_date: dateRange.end,
     });
@@ -95,26 +95,22 @@ const Index = () => {
       start_date: dateRange.start,
       end_date: dateRange.end,
     })
+
+    topCityfun({
+      start_date: dateRange.start,
+      end_date: dateRange.end,
+    })
+
+    topProffun({
+      start_date: dateRange.start,
+      end_date: dateRange.end,
+    })
+
+    engFun({
+      start_date: dateRange.start,
+      end_date: dateRange.end,
+    })
   }, [dateRange]);
-
-
-
-  const totalProfileViewCount = async (start_date, end_date) => {
-    try {
-      const data = await fetchAllProfilesViewCount(
-        start_date,
-        end_date,
-      );
-
-
-      setTotalProfileViews(data);
-
-      console.log("Total Profile Views (Last 30 days):", data);
-    } catch (err) {
-      console.log("Total Profile Views Error ->", err?.message);
-      showToast.error("Error while fetching profile views", err?.message);
-    }
-  };
 
 
   const viewedProfile = async (start_date, end_date) => {
@@ -181,7 +177,7 @@ const Index = () => {
   }
 
   const setConnection = async (start_date, end_date) => {
-    setConnectionLoading(true);
+
     try {
       let views = await fetchConnections(start_date, end_date);
       setConnections(views);
@@ -191,12 +187,27 @@ const Index = () => {
       console.log("Connections Error->", err)
       showToast.error("Error while fetching the API", err?.message)
     }
-    finally {
-      setConnectionLoading(false);
-    }
+
   }
+
   //total count for card 
 
+  const totalViewCount = async (start_date, end_date) => {
+
+    try {
+      const data = await fetchTotalViews(
+        start_date,
+        end_date,
+      );
+
+      const mapped = mapTotalVieCountToMetricCard(data)
+      setTotalViews(mapped);
+      console.log("TotalViews:", mapped);
+    } catch (err) {
+      console.log("Total Views Error ->", err?.message);
+      showToast.error("Error while fetching Total views", err?.message);
+    }
+  };
   const searchCount = async (start_date, end_date) => {
     try {
       const data = await fetchSearchCount(start_date, end_date);
@@ -207,6 +218,53 @@ const Index = () => {
     } catch (err) {
       console.log("Search Count Error ->", err?.message);
       showToast.error("Error while fetching search count", err?.message);
+    }
+  };
+
+  const topCityfun = async (start_date, end_date) => {
+    try {
+      const data = await fetchTopCity(
+        start_date,
+        end_date,
+      );
+
+      const mapped = mapTopCityToMetricCard(data)
+      console.log("Top City:", mapped);
+      setTopCity(mapped);
+    } catch (err) {
+      console.log("Top City Error ->", err?.message);
+      showToast.error("Error while fetching Top City", err?.message);
+    }
+  };
+
+  const topProffun = async (start_date, end_date) => {
+    try {
+      const data = await fetchTopProfession(
+        start_date,
+        end_date,
+      );
+
+      const mapped = mapTopProfToMetricCard(data);
+      setTopProf(mapped);
+      console.log("Top Prof:", mapped);
+    } catch (err) {
+      console.log("Top Prof Error ->", err?.message);
+      showToast.error("Error while fetching Top Prof", err?.message);
+    }
+  };
+
+  const engFun = async (start_date, end_date) => {
+    try {
+      const data = await fetchEngagement(
+        start_date,
+        end_date,
+      );
+      const mapped = mapEngToMetricCard(data);
+      setEng(mapped);
+      console.log("Eng:", mapped);
+    } catch (err) {
+      console.log("Eng Error ->", err?.message);
+      showToast.error("Error while fetching Engagement API", err?.message);
     }
   };
 
@@ -260,55 +318,64 @@ const Index = () => {
 
       <main className="max-w-[1440px] mx-auto px-6 py-6 space-y-8 ">
         {/* Metric Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-          <MetricCard
-            title="Total Views"
-            value={mockMetrics.monthlyLogins}
-            delta={mockMetrics.monthlyLoginsDelta}
-            sparklineData={mockDailyLogins}
-          />
-
-          {searchMetric && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+          {
+            totalViews &&
             <MetricCard
-              title={searchMetric.title}
-              value={searchMetric.value}
-              delta={searchMetric.delta}
-              sparklineData={searchMetric.sparklineData}
+              title={totalViews?.title}
+              value={totalViews?.value}
+              delta={totalViews?.delta}
+              sparklineData={totalViews?.sparklineData}
             />
-          )}
+          }
 
-          <MetricCard
-            title="Monthly Logins"
-            value={mockMetrics.monthlyLogins}
-            delta={mockMetrics.monthlyLoginsDelta}
-            sparklineData={mockDailyLogins}
-            sparklineColor="#f59e0b" // amber
-          />
-
-          <MetricCard
-            title="Searches"
-            value={mockMetrics.searchesPerformed}
-            delta={mockMetrics.searchesDelta}
-            sparklineData={mockMonthlySearches}
-            sparklineColor="#3b82f6" // blue
-          />
-
-          <MetricCard
+          {
+            searchMetric && (
+              <MetricCard
+                title={searchMetric?.title}
+                value={searchMetric?.value}
+                delta={searchMetric?.delta}
+                sparklineData={searchMetric?.sparklineData}
+              />
+            )}
+          {
+            topCity &&
+            <MetricCard
+              title={topCity?.title}
+              value={topCity?.value}
+              delta={topCity?.delta}
+              sparklineData={topCity?.sparklineData}
+              sparklineColor="#f59e0b"
+            />
+          }
+          {
+            topProf &&
+            <MetricCard
+              title={topProf?.title}
+              value={topProf?.value}
+              delta={topProf?.delta}
+              sparklineData={topProf?.sparklineData}
+              sparklineColor="#3b82f6"
+            />
+          }
+          {
+            eng &&
+            <MetricCard
+              title={eng?.title}
+              value={eng?.value}
+              delta={eng?.delta}
+              sparklineData={eng?.sparklineData}
+              sparklineColor="#8b5cf6"
+            />
+          }
+          {/* <MetricCard
             title="Failed Searches"
             value={mockMetrics.failedSearches}
             delta={mockMetrics.failedSearchesDelta}
             sparklineData={mockFailedSearches}
             sparklineColor="#ef4444" // red
-          />
+          /> */}
 
-          <MetricCard
-            title="Engagement"
-            value={mockMetrics.communityEngagement}
-            delta={mockMetrics.engagementDelta}
-            suffix="%"
-            sparklineData={mockDailyLogins}
-            sparklineColor="#8b5cf6" // violet
-          />
         </div>
 
         {/* Most Viewed */}

@@ -23,6 +23,7 @@ const D3NetworkGraph = ({
             const { width } = entries[0].contentRect;
             if (width > 0) setDimensions({ width, height });
         });
+
         if (containerRef.current) obs.observe(containerRef.current);
         return () => obs.disconnect();
     }, [height]);
@@ -38,11 +39,21 @@ const D3NetworkGraph = ({
 
         const colorScale = d3.scaleOrdinal(d3.schemeTableau10);
 
+        // IMPORTANT: clone links so D3 mutation doesn't affect original
+        const simulationLinks = links.map(l => ({ ...l }));
+
         const simulation = d3
             .forceSimulation(nodes)
-            .force("link", d3.forceLink(links).id(d => d.id).distance(50).strength(1))
+            .force(
+                "link",
+                d3
+                    .forceLink(simulationLinks)
+                    .id(d => d.id)
+                    .distance(50)
+                    .strength(1)
+            )
             .force("charge", d3.forceManyBody().strength(-80))
-            .force("collision", d3.forceCollide().radius(d => 12 + d.connections)) // moderate radius
+            .force("collision", d3.forceCollide().radius(d => 12 + (d.connections || 0)))
             .force("center", d3.forceCenter(w / 2, h / 2))
             .force("x", d3.forceX(w / 2).strength(0.05))
             .force("y", d3.forceY(h / 2).strength(0.05));
@@ -50,7 +61,11 @@ const D3NetworkGraph = ({
         const g = svg.append("g");
 
         // Zoom
-        svg.call(d3.zoom().scaleExtent([0.3, 3]).on("zoom", (event) => g.attr("transform", event.transform)));
+        svg.call(
+            d3.zoom().scaleExtent([0.3, 3]).on("zoom", (event) => {
+                g.attr("transform", event.transform);
+            })
+        );
 
         // Links
         const link = g
@@ -58,9 +73,9 @@ const D3NetworkGraph = ({
             .attr("stroke", "#cbd5e1")
             .attr("stroke-opacity", 0.6)
             .selectAll("line")
-            .data(links)
+            .data(simulationLinks)
             .join("line")
-            .attr("stroke-width", (d) => Math.sqrt(d.value || 1));
+            .attr("stroke-width", d => Math.sqrt(d.value || 1));
 
         // Nodes
         const node = g
@@ -86,31 +101,40 @@ const D3NetworkGraph = ({
                     })
             );
 
-        // Add circles first (fixed size for readability)
         node.append("circle")
-            .attr("r", (d) => 12 + d.connections) // slightly larger for more connections
-            .attr("fill", (d) => colorScale(d.group))
+            .attr("r", d => 12 + (d.connections || 0))
+            .attr("fill", d => colorScale(d.group))
             .attr("stroke", "#fff")
             .attr("stroke-width", 2)
             .style("cursor", "pointer");
 
-        // Add text on top (smaller font to fit circle)
         node.append("text")
-            .text((d) => d.label || d.id[0])
+            .text(d => d.label || d.id[0])
             .attr("text-anchor", "middle")
             .attr("dy", "0.35em")
             .attr("fill", "#fff")
-            .attr("font-size", "8px") // smaller font
+            .attr("font-size", "8px")
             .attr("font-weight", 600)
             .style("pointer-events", "none");
 
+        // ✅ FIXED: Get connection NAMES instead of IDs
         const getConnections = (nodeId) => {
-            const connectedIds = new Set();
-            links.forEach((l) => {
-                if (l.source.id === nodeId) connectedIds.add(l.target.id);
-                if (l.target.id === nodeId) connectedIds.add(l.source.id);
+            const connectedNames = new Set();
+
+            simulationLinks.forEach((l) => {
+                const sourceId = l.source.id;
+                const targetId = l.target.id;
+
+                if (sourceId === nodeId) {
+                    connectedNames.add(l.target.label);
+                }
+
+                if (targetId === nodeId) {
+                    connectedNames.add(l.source.label);
+                }
             });
-            return Array.from(connectedIds);
+
+            return Array.from(connectedNames);
         };
 
         // Hover interaction
@@ -122,10 +146,14 @@ const D3NetworkGraph = ({
 
             const tooltipHtml = `
                 <div style="font-weight:600;margin-bottom:4px">
-                    ${d?.label || d?.id} · ${connections.length} connections
+                    ${d.label} · ${connections.length} connections
                 </div>
                 ${visible.map(name => `<div>${name}</div>`).join("")}
-                ${remaining > 0 ? `<div style="opacity:.7;margin-top:4px">+${remaining} more</div>` : ""}
+                ${
+                    remaining > 0
+                        ? `<div style="opacity:.7;margin-top:4px">+${remaining} more</div>`
+                        : ""
+                }
             `;
 
             setTooltip({
@@ -135,9 +163,19 @@ const D3NetworkGraph = ({
                 content: tooltipHtml,
             });
 
-            const connected = new Set([d.id, ...connections]);
-            node.select("circle").attr("opacity", (n) => (connected.has(n.id) ? 1 : 0.2));
-            link.attr("stroke-opacity", (l) => (l.source.id === d.id || l.target.id === d.id ? 0.9 : 0.1));
+            const connectedIds = new Set([
+                d.id,
+                ...simulationLinks
+                    .filter(l => l.source.id === d.id || l.target.id === d.id)
+                    .flatMap(l => [l.source.id, l.target.id])
+            ]);
+
+            node.select("circle")
+                .attr("opacity", n => (connectedIds.has(n.id) ? 1 : 0.2));
+
+            link.attr("stroke-opacity", l =>
+                l.source.id === d.id || l.target.id === d.id ? 0.9 : 0.1
+            );
         })
         .on("mouseout", () => {
             setTooltip({ show: false, x: 0, y: 0, content: "" });
@@ -147,12 +185,12 @@ const D3NetworkGraph = ({
 
         simulation.on("tick", () => {
             link
-                .attr("x1", (d) => d.source.x)
-                .attr("y1", (d) => d.source.y)
-                .attr("x2", (d) => d.target.x)
-                .attr("y2", (d) => d.target.y);
+                .attr("x1", d => d.source.x)
+                .attr("y1", d => d.source.y)
+                .attr("x2", d => d.target.x)
+                .attr("y2", d => d.target.y);
 
-            node.attr("transform", (d) => `translate(${d.x},${d.y})`);
+            node.attr("transform", d => `translate(${d.x},${d.y})`);
         });
 
         return () => simulation.stop();
@@ -163,9 +201,12 @@ const D3NetworkGraph = ({
             ref={containerRef}
             className="bg-card border border-border rounded-xl p-4 relative"
         >
-            <h3 className="text-sm font-medium text-muted-foreground mb-3 font-mono tracking-wide uppercase">{title}</h3>
+            <h3 className="text-sm font-medium text-muted-foreground mb-3 font-mono tracking-wide uppercase">
+                {title}
+            </h3>
+
             <p className="text-xs text-muted-foreground mb-3">
-                Drag · Zoom · Hover To Highlight New Connections
+                Drag · Zoom · Hover To Highlight Connections
             </p>
 
             <svg ref={svgRef} width={dimensions.width} height={height} />
@@ -179,6 +220,13 @@ const D3NetworkGraph = ({
                         top: tooltip.y,
                         transform: "translate(-50%, -100%)",
                         pointerEvents: "none",
+                        background: "white",
+                        color: "black",
+                        padding: "8px 10px",
+                        borderRadius: "8px",
+                        fontSize: "12px",
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.25)",
+                        maxWidth: "220px",
                     }}
                     dangerouslySetInnerHTML={{ __html: tooltip.content }}
                 />

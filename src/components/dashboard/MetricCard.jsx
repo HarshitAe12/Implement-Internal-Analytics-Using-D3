@@ -15,7 +15,7 @@ const MetricCard = ({
     <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:shadow-md animate-slide-up">
       {/* Header */}
       <div className="flex items-start justify-between mb-2">
-        <span className="text-xs font-mono uppercase tracking-wider text-slate-500">
+        <span className="text-xs font-mono uppercase text-left tracking-wider text-slate-500">
           {title}
         </span>
 

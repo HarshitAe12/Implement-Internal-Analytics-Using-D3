@@ -74,7 +74,7 @@ export async function fetchMostSearchUsers({
   }
 }
 
-export async function fetchProfessionAnalytics({ limit=10,start_date, end_date } = {}) {
+export async function fetchProfessionAnalytics({ limit = 10, start_date, end_date } = {}) {
 
   const url = `https://api.proinsight.com/analytics/profession_analytics`;
 
@@ -102,7 +102,7 @@ export async function fetchProfessionAnalytics({ limit=10,start_date, end_date }
 
 
 export async function fetchAllProfilesViewCount({
-  limit=10,
+  limit = 10,
   start_date,
   end_date,
 } = {}) {
@@ -136,7 +136,7 @@ export async function fetchAllProfilesViewCount({
 }
 
 export async function fetchCityAnalitics({
-  limit=10,
+  limit = 10,
   start_date,
   end_date,
 } = {}) {
@@ -232,3 +232,126 @@ export async function fetchConnections({
 }
 
 
+export async function fetchTotalViews({
+  start_date,
+  end_date,
+} = {}) {
+  try {
+    const response = await fetch(
+      "https://api.proinsight.com/analytics/view_count",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          start_date,
+          end_date,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Total Views API failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("[Total Views API Error]", error);
+    throw error;
+  }
+}
+
+export async function fetchTopCity({
+  start_date,
+  end_date,
+} = {}) {
+  try {
+    const response = await fetch(
+      "https://api.proinsight.com/analytics/city_count",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          start_date,
+          end_date,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Top City API failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("[Top City API Error]", error);
+    throw error;
+  }
+}
+
+export async function fetchTopProfession({
+  start_date,
+  end_date,
+} = {}) {
+  try {
+    const response = await fetch(
+      "https://api.proinsight.com/analytics/profession_count",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          start_date,
+          end_date,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Top Profession API failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("[Top Profession API Error]", error);
+    throw error;
+  }
+}
+
+export async function fetchEngagement({
+  start_date,
+  end_date,
+} = {}) {
+  try {
+    const response = await fetch(
+      "https://api.proinsight.com/analytics/total_engagements",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          start_date,
+          end_date,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Engagement API failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("[Engagement API Error]", error);
+    throw error;
+  }
+}
