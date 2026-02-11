@@ -46,7 +46,7 @@ const D3NetworkGraph = ({
         const simulationLinks = links.map((l) => ({ ...l }));
 
         /* ----------- Better Radius Scaling ----------- */
-        const getRadius = (d) => 12 + Math.sqrt(d.connections || 1) * 2.5;
+        const getRadius = (d) => 12 + Math.sqrt(d.connections || 1) * 5;
 
         /* ----------- Handle Duplicate Initials ----------- */
         const initialsMap = {};
@@ -96,7 +96,7 @@ const simulation = d3
   )
   .force(
     "collision",
-    d3.forceCollide().radius((d) => getRadius(d) + 1) // Smaller padding
+    d3.forceCollide().radius((d) => getRadius(d) + 4) // Smaller padding
   )
   .force("center", d3.forceCenter(w / 2, h / 2))
   .alphaDecay(0.04); // Slightly faster stabilization
