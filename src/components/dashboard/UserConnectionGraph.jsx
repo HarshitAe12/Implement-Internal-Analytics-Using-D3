@@ -17,7 +17,7 @@ const D3NetworkGraph = ({
         content: "",
     });
 
-    // Resize observer
+    /* ---------------- Resize Observer ---------------- */
     useEffect(() => {
         const obs = new ResizeObserver((entries) => {
             const { width } = entries[0].contentRect;
@@ -28,8 +28,10 @@ const D3NetworkGraph = ({
         return () => obs.disconnect();
     }, [height]);
 
+    /* ---------------- Main Graph ---------------- */
     useEffect(() => {
-        if (!svgRef.current || dimensions.width === 0 || nodes.length === 0) return;
+        if (!svgRef.current || dimensions.width === 0 || nodes.length === 0)
+            return;
 
         const svg = d3.select(svgRef.current);
         svg.selectAll("*").remove();
@@ -39,13 +41,45 @@ const D3NetworkGraph = ({
 
         const colorScale = d3.scaleOrdinal(d3.schemeTableau10);
 
-        const simulationLinks = links.map((l) => ({ ...l }));
+        // Clone data (avoid mutation)
         const simulationNodes = nodes.map((n) => ({ ...n }));
+        const simulationLinks = links.map((l) => ({ ...l }));
 
-        // ✅ Better radius scaling
-        const getRadius = (d) =>
-            10 + Math.sqrt(d.connections || 1) * 2;
+        /* ----------- Better Radius Scaling ----------- */
+        const getRadius = (d) => 12 + Math.sqrt(d.connections || 1) * 2.5;
 
+        /* ----------- Handle Duplicate Initials ----------- */
+        const initialsMap = {};
+
+        simulationNodes.forEach((n) => {
+            if (!n.label) return;
+
+            const parts = n.label.split(" ");
+            const base =
+                parts.length > 1
+                    ? parts[0][0] + parts[1][0]
+                    : parts[0][0];
+
+            initialsMap[base] = (initialsMap[base] || 0) + 1;
+        });
+
+        const getInitials = (label, id) => {
+            if (!label) return id[0];
+
+            const parts = label.split(" ");
+            let initials =
+                parts.length > 1
+                    ? parts[0][0] + parts[1][0]
+                    : parts[0][0];
+
+            if (initialsMap[initials] > 1) {
+                return parts[0].slice(0, 3).toUpperCase();
+            }
+
+            return initials.toUpperCase();
+        };
+
+        /* ----------- Simulation ----------- */
         const simulation = d3
             .forceSimulation(simulationNodes)
             .force(
@@ -53,33 +87,36 @@ const D3NetworkGraph = ({
                 d3
                     .forceLink(simulationLinks)
                     .id((d) => d.id)
-                    .distance(70)
-                    .strength(0.8)
+                    .distance(80)
+                    .strength(0.7)
             )
-            .force("charge", d3.forceManyBody().strength(-120))
-            .force("collision", d3.forceCollide().radius((d) => getRadius(d) + 4))
+            .force("charge", d3.forceManyBody().strength(-150))
+            .force(
+                "collision",
+                d3.forceCollide().radius((d) => getRadius(d) + 6)
+            )
             .force("center", d3.forceCenter(w / 2, h / 2));
 
         const g = svg.append("g");
 
-        // Zoom
+        /* ----------- Zoom ----------- */
         svg.call(
             d3.zoom().scaleExtent([0.4, 3]).on("zoom", (event) => {
                 g.attr("transform", event.transform);
             })
         );
 
-        // Links
+        /* ----------- Links ----------- */
         const link = g
             .append("g")
             .attr("stroke", "#cbd5e1")
-            .attr("stroke-opacity", 0.6)
+            .attr("stroke-opacity", 0.5)
             .selectAll("line")
             .data(simulationLinks)
             .join("line")
             .attr("stroke-width", (d) => Math.sqrt(d.value || 1));
 
-        // Nodes
+        /* ----------- Nodes ----------- */
         const node = g
             .append("g")
             .selectAll("g")
@@ -103,94 +140,123 @@ const D3NetworkGraph = ({
                     })
             );
 
-        // Circles
+        /* ----------- Circles ----------- */
         node
             .append("circle")
             .attr("r", (d) => getRadius(d))
             .attr("fill", (d) => colorScale(d.group))
             .attr("stroke", "#ffffff")
             .attr("stroke-width", 1.5)
-            .style("cursor", "pointer");
+            .style("cursor", "pointer")
+            .style(
+                "filter",
+                "drop-shadow(0px 3px 6px rgba(0,0,0,0.15))"
+            );
 
-        // ✅ Initials inside circle (clean fix)
+        /* ----------- Initials ----------- */
         node
             .append("text")
-            .text((d) => {
-                if (!d.label) return d.id[0];
-                const parts = d.label.split(" ");
-                return parts.length > 1
-                    ? parts[0][0] + parts[1][0]
-                    : parts[0][0];
-            })
+            .text((d) => getInitials(d.label, d.id))
             .attr("text-anchor", "middle")
             .attr("dy", "0.35em")
-            .attr("fill", "#fff")
-            .attr("font-size", "9px")
+            .attr("fill", "#ffffff")
             .attr("font-weight", 600)
+            .attr("font-size", (d) =>
+                Math.max(9, getRadius(d) * 0.55)
+            )
             .style("pointer-events", "none");
 
-        // Get connected names
-        const getConnections = (nodeId) => {
-            const connected = new Set();
-
-            simulationLinks.forEach((l) => {
-                if (l.source.id === nodeId) connected.add(l.target.label);
-                if (l.target.id === nodeId) connected.add(l.source.label);
-            });
-
-            return Array.from(connected);
-        };
-
-        // Hover interaction
+        /* ----------- Hover Interaction ----------- */
         node
             .on("mouseover", (event, d) => {
                 const rect = containerRef.current.getBoundingClientRect();
-                const connections = getConnections(d.id);
 
-                const visible = connections.slice(0, 3);
-                const remaining = connections.length - visible.length;
-
-                const tooltipHtml = `
-          <div style="font-weight:600;margin-bottom:4px">
-            ${d.label} · ${connections.length} connections
-          </div>
-          ${visible.map((name) => `<div>${name}</div>`).join("")}
-          ${remaining > 0
-                        ? `<div style="opacity:.7;margin-top:4px">+${remaining} more</div>`
-                        : ""
-                    }
-        `;
-
-                setTooltip({
-                    show: true,
-                    x: event.clientX - rect.left,
-                    y: event.clientY - rect.top - 10,
-                    content: tooltipHtml,
-                });
+                // Get directly connected nodes
+                const connectedNodes = simulationLinks
+                    .filter(
+                        (l) =>
+                            l.source.id === d.id ||
+                            l.target.id === d.id
+                    )
+                    .map((l) =>
+                        l.source.id === d.id ? l.target : l.source
+                    );
 
                 const connectedIds = new Set([
                     d.id,
-                    ...simulationLinks
-                        .filter(
-                            (l) => l.source.id === d.id || l.target.id === d.id
-                        )
-                        .flatMap((l) => [l.source.id, l.target.id]),
+                    ...connectedNodes.map((n) => n.id),
                 ]);
 
+                // Highlight logic
                 node.select("circle").attr("opacity", (n) =>
                     connectedIds.has(n.id) ? 1 : 0.15
                 );
 
                 link.attr("stroke-opacity", (l) =>
-                    l.source.id === d.id || l.target.id === d.id ? 0.9 : 0.05
+                    l.source.id === d.id ||
+                        l.target.id === d.id
+                        ? 0.9
+                        : 0.05
                 );
+
+                d3.select(event.currentTarget)
+                    .select("circle")
+                    .transition()
+                    .duration(150)
+                    .attr("stroke-width", 3);
+
+                // Get first 3 connected names
+                const topConnections = connectedNodes
+                    .slice(0, 3)
+                    .map((n) => n.label)
+                    .join(", ");
+
+                const remainingCount =
+                    connectedNodes.length > 3
+                        ? ` +${connectedNodes.length - 3} more`
+                        : "";
+
+                setTooltip({
+                    show: true,
+                    x: event.clientX - rect.left,
+                    y: event.clientY - rect.top - 12,
+                    content: `
+      <div style="font-weight:600;margin-bottom:4px">
+        ${d.label}
+      </div>
+      <div style="opacity:.7;margin-bottom:4px">
+        ${d.connections || 0} connections
+      </div>
+      ${connectedNodes.length > 0
+                            ? `<div style="font-size:11px;color:#555">
+              <strong>Connected to:</strong><br/>
+              ${topConnections}${remainingCount}
+            </div>`
+                            : ""
+                        }
+    `,
+                });
             })
-            .on("mouseout", () => {
-                setTooltip({ show: false, x: 0, y: 0, content: "" });
+
+            .on("mouseout", (event) => {
                 node.select("circle").attr("opacity", 1);
-                link.attr("stroke-opacity", 0.6);
+                link.attr("stroke-opacity", 0.5);
+
+                d3.select(event.currentTarget)
+                    .select("circle")
+                    .transition()
+                    .duration(150)
+                    .attr("stroke-width", 1.5);
+
+                setTooltip({
+                    show: false,
+                    x: 0,
+                    y: 0,
+                    content: "",
+                });
             });
 
+        /* ----------- Tick ----------- */
         simulation.on("tick", () => {
             link
                 .attr("x1", (d) => d.source.x)
@@ -198,12 +264,16 @@ const D3NetworkGraph = ({
                 .attr("x2", (d) => d.target.x)
                 .attr("y2", (d) => d.target.y);
 
-            node.attr("transform", (d) => `translate(${d.x},${d.y})`);
+            node.attr(
+                "transform",
+                (d) => `translate(${d.x},${d.y})`
+            );
         });
 
         return () => simulation.stop();
     }, [dimensions, nodes, links]);
 
+    /* ---------------- UI ---------------- */
     return (
         <div
             ref={containerRef}
@@ -214,10 +284,14 @@ const D3NetworkGraph = ({
             </h3>
 
             <p className="text-xs text-muted-foreground mb-3">
-                Drag · Zoom · Hover To Highlight Connections
+                Drag · Zoom · Hover to highlight connections
             </p>
 
-            <svg ref={svgRef} width={dimensions.width} height={height} />
+            <svg
+                ref={svgRef}
+                width={dimensions.width}
+                height={height}
+            />
 
             {tooltip.show && (
                 <div
@@ -232,10 +306,13 @@ const D3NetworkGraph = ({
                         padding: "8px 10px",
                         borderRadius: "8px",
                         fontSize: "12px",
-                        boxShadow: "0 6px 18px rgba(0,0,0,0.25)",
+                        boxShadow:
+                            "0 8px 24px rgba(0,0,0,0.25)",
                         maxWidth: "220px",
                     }}
-                    dangerouslySetInnerHTML={{ __html: tooltip.content }}
+                    dangerouslySetInnerHTML={{
+                        __html: tooltip.content,
+                    }}
                 />
             )}
         </div>
