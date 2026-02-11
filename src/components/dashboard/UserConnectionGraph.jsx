@@ -39,30 +39,32 @@ const D3NetworkGraph = ({
 
         const colorScale = d3.scaleOrdinal(d3.schemeTableau10);
 
-        // IMPORTANT: clone links so D3 mutation doesn't affect original
-        const simulationLinks = links.map(l => ({ ...l }));
+        const simulationLinks = links.map((l) => ({ ...l }));
+        const simulationNodes = nodes.map((n) => ({ ...n }));
+
+        // ✅ Better radius scaling
+        const getRadius = (d) =>
+            10 + Math.sqrt(d.connections || 1) * 2;
 
         const simulation = d3
-            .forceSimulation(nodes)
+            .forceSimulation(simulationNodes)
             .force(
                 "link",
                 d3
                     .forceLink(simulationLinks)
-                    .id(d => d.id)
-                    .distance(50)
-                    .strength(1)
+                    .id((d) => d.id)
+                    .distance(70)
+                    .strength(0.8)
             )
-            .force("charge", d3.forceManyBody().strength(-80))
-            .force("collision", d3.forceCollide().radius(d => 12 + (d.connections || 0)))
-            .force("center", d3.forceCenter(w / 2, h / 2))
-            .force("x", d3.forceX(w / 2).strength(0.05))
-            .force("y", d3.forceY(h / 2).strength(0.05));
+            .force("charge", d3.forceManyBody().strength(-120))
+            .force("collision", d3.forceCollide().radius((d) => getRadius(d) + 4))
+            .force("center", d3.forceCenter(w / 2, h / 2));
 
         const g = svg.append("g");
 
         // Zoom
         svg.call(
-            d3.zoom().scaleExtent([0.3, 3]).on("zoom", (event) => {
+            d3.zoom().scaleExtent([0.4, 3]).on("zoom", (event) => {
                 g.attr("transform", event.transform);
             })
         );
@@ -75,13 +77,13 @@ const D3NetworkGraph = ({
             .selectAll("line")
             .data(simulationLinks)
             .join("line")
-            .attr("stroke-width", d => Math.sqrt(d.value || 1));
+            .attr("stroke-width", (d) => Math.sqrt(d.value || 1));
 
         // Nodes
         const node = g
             .append("g")
             .selectAll("g")
-            .data(nodes)
+            .data(simulationNodes)
             .join("g")
             .call(
                 d3.drag()
@@ -101,96 +103,102 @@ const D3NetworkGraph = ({
                     })
             );
 
-        node.append("circle")
-            .attr("r", d => 12 + (d.connections || 0))
-            .attr("fill", d => colorScale(d.group))
-            .attr("stroke", "#fff")
-            .attr("stroke-width", 2)
+        // Circles
+        node
+            .append("circle")
+            .attr("r", (d) => getRadius(d))
+            .attr("fill", (d) => colorScale(d.group))
+            .attr("stroke", "#ffffff")
+            .attr("stroke-width", 1.5)
             .style("cursor", "pointer");
 
-        node.append("text")
-            .text(d => d.label || d.id[0])
+        // ✅ Initials inside circle (clean fix)
+        node
+            .append("text")
+            .text((d) => {
+                if (!d.label) return d.id[0];
+                const parts = d.label.split(" ");
+                return parts.length > 1
+                    ? parts[0][0] + parts[1][0]
+                    : parts[0][0];
+            })
             .attr("text-anchor", "middle")
             .attr("dy", "0.35em")
             .attr("fill", "#fff")
-            .attr("font-size", "8px")
+            .attr("font-size", "9px")
             .attr("font-weight", 600)
             .style("pointer-events", "none");
 
-        // ✅ FIXED: Get connection NAMES instead of IDs
+        // Get connected names
         const getConnections = (nodeId) => {
-            const connectedNames = new Set();
+            const connected = new Set();
 
             simulationLinks.forEach((l) => {
-                const sourceId = l.source.id;
-                const targetId = l.target.id;
-
-                if (sourceId === nodeId) {
-                    connectedNames.add(l.target.label);
-                }
-
-                if (targetId === nodeId) {
-                    connectedNames.add(l.source.label);
-                }
+                if (l.source.id === nodeId) connected.add(l.target.label);
+                if (l.target.id === nodeId) connected.add(l.source.label);
             });
 
-            return Array.from(connectedNames);
+            return Array.from(connected);
         };
 
         // Hover interaction
-        node.on("mouseover", (event, d) => {
-            const rect = containerRef.current.getBoundingClientRect();
-            const connections = getConnections(d.id);
-            const visible = connections.slice(0, 3);
-            const remaining = connections.length - visible.length;
+        node
+            .on("mouseover", (event, d) => {
+                const rect = containerRef.current.getBoundingClientRect();
+                const connections = getConnections(d.id);
 
-            const tooltipHtml = `
-                <div style="font-weight:600;margin-bottom:4px">
-                    ${d.label} · ${connections.length} connections
-                </div>
-                ${visible.map(name => `<div>${name}</div>`).join("")}
-                ${
-                    remaining > 0
+                const visible = connections.slice(0, 3);
+                const remaining = connections.length - visible.length;
+
+                const tooltipHtml = `
+          <div style="font-weight:600;margin-bottom:4px">
+            ${d.label} · ${connections.length} connections
+          </div>
+          ${visible.map((name) => `<div>${name}</div>`).join("")}
+          ${remaining > 0
                         ? `<div style="opacity:.7;margin-top:4px">+${remaining} more</div>`
                         : ""
-                }
-            `;
+                    }
+        `;
 
-            setTooltip({
-                show: true,
-                x: event.clientX - rect.left,
-                y: event.clientY - rect.top - 8,
-                content: tooltipHtml,
+                setTooltip({
+                    show: true,
+                    x: event.clientX - rect.left,
+                    y: event.clientY - rect.top - 10,
+                    content: tooltipHtml,
+                });
+
+                const connectedIds = new Set([
+                    d.id,
+                    ...simulationLinks
+                        .filter(
+                            (l) => l.source.id === d.id || l.target.id === d.id
+                        )
+                        .flatMap((l) => [l.source.id, l.target.id]),
+                ]);
+
+                node.select("circle").attr("opacity", (n) =>
+                    connectedIds.has(n.id) ? 1 : 0.15
+                );
+
+                link.attr("stroke-opacity", (l) =>
+                    l.source.id === d.id || l.target.id === d.id ? 0.9 : 0.05
+                );
+            })
+            .on("mouseout", () => {
+                setTooltip({ show: false, x: 0, y: 0, content: "" });
+                node.select("circle").attr("opacity", 1);
+                link.attr("stroke-opacity", 0.6);
             });
-
-            const connectedIds = new Set([
-                d.id,
-                ...simulationLinks
-                    .filter(l => l.source.id === d.id || l.target.id === d.id)
-                    .flatMap(l => [l.source.id, l.target.id])
-            ]);
-
-            node.select("circle")
-                .attr("opacity", n => (connectedIds.has(n.id) ? 1 : 0.2));
-
-            link.attr("stroke-opacity", l =>
-                l.source.id === d.id || l.target.id === d.id ? 0.9 : 0.1
-            );
-        })
-        .on("mouseout", () => {
-            setTooltip({ show: false, x: 0, y: 0, content: "" });
-            node.select("circle").attr("opacity", 1);
-            link.attr("stroke-opacity", 0.6);
-        });
 
         simulation.on("tick", () => {
             link
-                .attr("x1", d => d.source.x)
-                .attr("y1", d => d.source.y)
-                .attr("x2", d => d.target.x)
-                .attr("y2", d => d.target.y);
+                .attr("x1", (d) => d.source.x)
+                .attr("y1", (d) => d.source.y)
+                .attr("x2", (d) => d.target.x)
+                .attr("y2", (d) => d.target.y);
 
-            node.attr("transform", d => `translate(${d.x},${d.y})`);
+            node.attr("transform", (d) => `translate(${d.x},${d.y})`);
         });
 
         return () => simulation.stop();
@@ -213,7 +221,6 @@ const D3NetworkGraph = ({
 
             {tooltip.show && (
                 <div
-                    className="d3-tooltip"
                     style={{
                         position: "absolute",
                         left: tooltip.x,
@@ -225,7 +232,7 @@ const D3NetworkGraph = ({
                         padding: "8px 10px",
                         borderRadius: "8px",
                         fontSize: "12px",
-                        boxShadow: "0 4px 12px rgba(0,0,0,0.25)",
+                        boxShadow: "0 6px 18px rgba(0,0,0,0.25)",
                         maxWidth: "220px",
                     }}
                     dangerouslySetInnerHTML={{ __html: tooltip.content }}
