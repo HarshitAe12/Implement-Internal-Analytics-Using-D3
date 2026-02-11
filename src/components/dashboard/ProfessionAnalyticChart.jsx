@@ -5,9 +5,10 @@ const ProfessionAnalyticChart = ({ data, height = 780, title }) => {
   const containerRef = useRef(null);
   const svgRef = useRef(null);
 
-  // Map API data to D3-friendly format
+  // Map API data
   const mappedData = (() => {
-    if (!data || !data.most_searched_professions || !data.most_viewed_professions) return [];
+    if (!data || !data.most_searched_professions || !data.most_viewed_professions)
+      return [];
 
     const searchedMap = Object.fromEntries(
       data.most_searched_professions.map((item) => [item.profession_code, item.count])
@@ -27,92 +28,86 @@ const ProfessionAnalyticChart = ({ data, height = 780, title }) => {
   useEffect(() => {
     if (!svgRef.current || !containerRef.current || mappedData.length === 0) return;
 
-    const labelLength = Math.max(...mappedData.map((d) => d.label.length));
-    const bottomMargin = Math.min(200, 40 + labelLength * 6); // 40px base + 6px per char, max 200
-    const margin = { top: 20, right: 20, bottom: bottomMargin, left: 60 };
-
-    const containerWidth = Math.max(containerRef.current.clientWidth, mappedData.length * 100);
-    const w = containerWidth - margin.left - margin.right;
-    const h = height - margin.top - margin.bottom;
-
     // Clear previous chart
     d3.select(svgRef.current).selectAll("*").remove();
 
+    const margin = { top: 40, right: 40, bottom: 160, left: 80 };
+    const minBarWidth = 60; // each bar minimum width for mobile readability
+    const containerWidth = Math.max(mappedData.length * minBarWidth, containerRef.current.clientWidth);
+    const w = containerWidth - margin.left - margin.right;
+    const h = height - margin.top - margin.bottom;
+
     const svg = d3
       .select(svgRef.current)
-      .attr("width", containerWidth)
+      .attr("width", containerWidth) // allow overflow scroll
       .attr("height", height)
       .append("g")
       .attr("transform", `translate(${margin.left},${margin.top})`);
 
-    const groups = mappedData.map((d) => d.label);
-    const subgroups = ["searched", "viewed"];
-    const colors = ["#f59e0b", "#0ea5e9"]; // orange & blue
+    // X scale
+    const x = d3
+      .scaleBand()
+      .domain(mappedData.map((d) => d.label))
+      .range([0, w])
+      .padding(0.3); // reduce padding to fit more bars
 
-    const x0 = d3.scaleBand().domain(groups).range([0, w]).padding(0.25);
-    const x1 = d3.scaleBand().domain(subgroups).range([0, x0.bandwidth()]).padding(0.05);
-    const y = d3
-      .scaleLinear()
-      .domain([0, d3.max(mappedData, (d) => Math.max(d.searched, d.viewed)) || 0])
-      .nice()
-      .range([h, 0]);
+    // Y scale
+    const yMax = d3.max(mappedData, (d) => Math.max(d.searched, d.viewed)) || 0;
+    const y = d3.scaleLinear().domain([0, yMax * 1.1]).range([h, 0]).nice();
 
-    // X grid
-    svg
-      .append("g")
-      .selectAll("line")
-      .data(y.ticks(5))
-      .join("line")
-      .attr("x1", 0)
-      .attr("x2", w)
-      .attr("y1", (d) => y(d))
-      .attr("y2", (d) => y(d))
-      .attr("stroke", "#e5e7eb");
+    const color = { searched: "#f59e0b", viewed: "#0ea5e9" };
+
+    // Y axis
+    svg.append("g").call(d3.axisLeft(y).ticks(5).tickSize(-4));
 
     // X axis
     svg
       .append("g")
       .attr("transform", `translate(0,${h})`)
-      .call(d3.axisBottom(x0).tickSize(0))
+      .call(d3.axisBottom(x))
       .selectAll("text")
-      .attr("transform", "rotate(-45)")
+      .attr("transform", "rotate(-35)")
       .style("text-anchor", "end")
-      .style("font-size", "12px")
-      .style("dominant-baseline", "ideographic");
+      .style("font-size", "12px");
 
-    // Y axis
-    svg.append("g").call(d3.axisLeft(y).ticks(5).tickSize(-4));
-
-    // Tooltip (append to body for correct positioning)
+    // Tooltip
     const tooltip = d3
       .select("body")
       .append("div")
       .attr("class", "d3-tooltip")
       .style("opacity", 0);
 
-    // Bar groups
-    const barGroups = svg
-      .selectAll(".bar-group")
+    // Lines connecting dots
+    svg
+      .selectAll(".connection-line")
       .data(mappedData)
-      .join("g")
-      .attr("transform", (d) => `translate(${x0(d.label)},0)`);
+      .join("line")
+      .attr("x1", (d) => x(d.label) + x.bandwidth() / 2)
+      .attr("x2", (d) => x(d.label) + x.bandwidth() / 2)
+      .attr("y1", (d) => y(d.searched))
+      .attr("y2", (d) => y(d.viewed))
+      .attr("stroke", "#999")
+      .attr("stroke-width", 2)
+      .attr("opacity", 0.7);
 
-    subgroups.forEach((key, i) => {
-      barGroups
-        .append("rect")
-        .attr("x", x1(key) || 0)
-        .attr("width", x1.bandwidth())
-        .attr("y", h)
-        .attr("height", 0)
-        .attr("fill", colors[i])
-        .attr("rx", 2)
-        .attr("opacity", 0.85)
+    // Dots for searched/viewed
+    ["searched", "viewed"].forEach((key) => {
+      svg
+        .selectAll(`.dot-${key}`)
+        .data(mappedData)
+        .join("circle")
+        .attr("cx", (d) => x(d.label) + x.bandwidth() / 2)
+        .attr("cy", (d) => y(d[key]))
+        .attr("r", 6)
+        .attr("fill", color[key])
+        .attr("stroke", "#fff")
+        .attr("stroke-width", 1.5)
+        .style("cursor", "pointer")
         .on("mouseenter", function (event, d) {
-          d3.select(this).attr("opacity", 1);
-          const val = key === "searched" ? d.searched : d.viewed;
+          d3.select(this).attr("r", 8);
           tooltip
             .style("opacity", 1)
-            .html(`<strong>${d.label}</strong><br/>${key}: ${val.toLocaleString()}`);
+            .html(`<strong>${d.label}</strong><br/>${key}: ${d[key].toLocaleString()}`);
         })
         .on("mousemove", function (event) {
           const tooltipWidth = tooltip.node().offsetWidth;
@@ -124,30 +119,25 @@ const ProfessionAnalyticChart = ({ data, height = 780, title }) => {
           tooltip.style("left", `${left}px`).style("top", `${top}px`);
         })
         .on("mouseleave", function () {
-          d3.select(this).attr("opacity", 0.85);
+          d3.select(this).attr("r", 6);
           tooltip.style("opacity", 0);
-        })
-        .transition()
-        .duration(600)
-        .delay((_, j) => j * 40 + i * 200)
-        .attr("y", (d) => y(key === "searched" ? d.searched : d.viewed))
-        .attr("height", (d) => h - y(key === "searched" ? d.searched : d.viewed));
+        });
     });
 
     // Legend
-    const legend = svg.append("g").attr("transform", `translate(${w - 180}, -8)`);
-    subgroups.forEach((key, i) => {
-      const g = legend.append("g").attr("transform", `translate(${i * 95}, 0)`);
-      g.append("rect").attr("width", 10).attr("height", 10).attr("rx", 2).attr("fill", colors[i]);
+    const legend = svg.append("g").attr("transform", `translate(${w - 150}, -20)`);
+    ["searched", "viewed"].forEach((key, i) => {
+      const g = legend.append("g").attr("transform", `translate(${i * 100},0)`);
+      g.append("circle").attr("r", 6).attr("fill", color[key]);
       g.append("text")
-        .attr("x", 14)
-        .attr("y", 9)
+        .attr("x", 12)
+        .attr("y", 4)
         .style("font-size", "12px")
         .text(key.charAt(0).toUpperCase() + key.slice(1));
     });
 
     return () => tooltip.remove();
-  }, [data, height]);
+  }, [data, height, mappedData]);
 
   return (
     <div

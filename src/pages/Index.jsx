@@ -7,7 +7,7 @@ import {
 } from "../data/mockData";
 import DateRangeFilter from "../components/dashboard/DateRangeFilter";
 import MetricCard from "../components/dashboard/MetricCard";
-import  { fetchAllProfilesViewCount, fetchCityAnalitics, fetchConnections, fetchMostSearchUsers, fetchMostViewedProfiles, fetchProfessionAnalytics, fetchSearchCount } from "../utils/api";
+import { fetchAllProfilesViewCount, fetchCityAnalitics, fetchConnections, fetchMostSearchUsers, fetchMostViewedProfiles, fetchProfessionAnalytics, fetchSearchCount } from "../utils/api";
 import { showToast } from "@/utils/showToast";
 import MostViewedProfile from "@/components/dashboard/MostViewedProfile";
 import MostSearchUser from "@/components/dashboard/MostSearchUser";
@@ -99,7 +99,7 @@ const Index = () => {
 
 
 
-  const totalProfileViewCount = async (start_date, end_date ) => {
+  const totalProfileViewCount = async (start_date, end_date) => {
     try {
       const data = await fetchAllProfilesViewCount(
         start_date,
@@ -199,7 +199,7 @@ const Index = () => {
 
   const searchCount = async (start_date, end_date) => {
     try {
-      const data = await fetchSearchCount( start_date, end_date);
+      const data = await fetchSearchCount(start_date, end_date);
       const mapped = mapSearchCountToMetricCard(data);
       setSearchMetric(mapped);
 
@@ -325,7 +325,11 @@ const Index = () => {
 
 
         {/* Network Graph */}
-        <D3NetworkGraph nodes={connections?.nodes} links={connections?.links} height={600} />
+        {
+          connectionLoading ? (<Spinner />)
+            :
+            <D3NetworkGraph nodes={connections?.nodes} links={connections?.links} height={600} />
+        }
 
 
         {/* Analytics Row */}
@@ -352,7 +356,7 @@ const Index = () => {
                 data={mostsearchUser}
                 title="Top Search Queries"
                 color="#f59e0b"
-                height={"100%"}
+                height={"700"}
                 yLabel="Searches"
               />
             </div>

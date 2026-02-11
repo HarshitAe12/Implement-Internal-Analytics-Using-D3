@@ -4,8 +4,10 @@ import * as d3 from "d3";
 const MostSearchUser = ({
   data,
   width: propWidth,
-  height = "100%",
+  barHeight = 40, // fixed bar height
+  barGap = 8, // gap between bars
   title = "TOP SEARCH QUERIES",
+  barColor = "#f28e2c",
 }) => {
   const containerRef = useRef(null);
   const svgRef = useRef(null);
@@ -13,37 +15,33 @@ const MostSearchUser = ({
   useEffect(() => {
     if (!svgRef.current || !containerRef.current || !data?.length) return;
 
-    //  Sort & rank data
     const chartData = data
-      .map((item) => ({
-        label: item.criteria,
-        value: item.search_count,
-      }))
+      .map((item) => ({ label: item.criteria, value: item.search_count }))
       .sort((a, b) => b.value - a.value);
 
     const containerWidth = propWidth || containerRef.current.clientWidth;
 
-    const margin = { top: 20, right: 60, bottom: 20, left: 180 };
-    const w = containerWidth - margin.left - margin.right;
-   const containerHeight = containerRef.current.clientHeight;
-const h = containerHeight - margin.top - margin.bottom;
+    const margin = { top: 20, right: 40, bottom: 20, left: 140 };
 
+    // Dynamically calculate chart height based on number of bars
+    const h = chartData.length * (barHeight + barGap);
+    const w = containerWidth - margin.left - margin.right;
 
     d3.select(svgRef.current).selectAll("*").remove();
 
     const svg = d3
       .select(svgRef.current)
       .attr("width", containerWidth)
-      .attr("height", height)
+      .attr("height", h + margin.top + margin.bottom)
       .append("g")
       .attr("transform", `translate(${margin.left},${margin.top})`);
 
-    // Scales
+    // Y scale: use index to position bars, not band
     const y = d3
       .scaleBand()
-      .domain(chartData.map((d) => d.label))
+      .domain(chartData.map((d, i) => i))
       .range([0, h])
-      .padding(0.35);
+      .padding(0);
 
     const x = d3
       .scaleLinear()
@@ -51,7 +49,7 @@ const h = containerHeight - margin.top - margin.bottom;
       .nice()
       .range([0, w]);
 
-    // X Grid
+    // X grid lines
     svg
       .append("g")
       .selectAll("line")
@@ -64,10 +62,10 @@ const h = containerHeight - margin.top - margin.bottom;
       .attr("stroke", "#e5e7eb")
       .attr("stroke-dasharray", "2,4");
 
-    // Y Axis (labels)
+    // Y axis labels
     svg
       .append("g")
-      .call(d3.axisLeft(y).tickSize(0))
+      .call(d3.axisLeft(y).tickFormat((i) => chartData[i].label).tickSize(0))
       .call((g) => g.select(".domain").remove())
       .selectAll("text")
       .style("fill", "#334155")
@@ -87,26 +85,16 @@ const h = containerHeight - margin.top - margin.bottom;
       .data(chartData)
       .join("rect")
       .attr("class", "bar")
-      .attr("y", (d) => y(d.label))
+      .attr("y", (_, i) => y(i))
       .attr("x", 0)
-      .attr("height", y.bandwidth())
+      .attr("height", barHeight)
       .attr("width", 0)
-      .attr("rx", 8)
-      .attr("fill", (d, i) =>
-        i === 0
-          ? "#f59e0b"
-          : i === 1
-          ? "#94a3b8"
-          : i === 2
-          ? "#fb7185"
-          : "#e5e7eb"
-      )
+      .attr("rx", 4)
+      .attr("fill", barColor)
       .on("mouseenter", (event, d) => {
         tooltip
           .style("opacity", 1)
-          .html(
-            `<strong>${d.label}</strong><br/>Searches: ${d.value}`
-          )
+          .html(`<strong>${d.label}</strong><br/>Searches: ${d.value}`)
           .style("left", `${event.pageX + 12}px`)
           .style("top", `${event.pageY - 28}px`);
       })
@@ -118,56 +106,36 @@ const h = containerHeight - margin.top - margin.bottom;
       .on("mouseleave", () => tooltip.style("opacity", 0))
       .transition()
       .duration(700)
-      .delay((_, i) => i * 80)
+      .delay((_, i) => i * 60)
       .attr("width", (d) => x(d.value));
 
-    // Value Labels
+    // Value labels
     svg
       .selectAll(".value")
       .data(chartData)
       .join("text")
-      .attr("x", (d) => x(d.value) + 8)
-      .attr("y", (d) => y(d.label) + y.bandwidth() / 2)
+      .attr("x", (d) => x(d.value) + 6)
+      .attr("y", (_, i) => y(i) + barHeight / 2)
       .attr("dy", "0.35em")
       .text((d) => d.value)
       .style("fill", "#0f172a")
       .style("font-size", "12px")
       .style("font-weight", "600");
 
-    // Rank badges
-    svg
-      .selectAll(".rank")
-      .data(chartData)
-      .join("text")
-      .attr("x", -150)
-      .attr("y", (d) => y(d.label) + y.bandwidth() / 2)
-      .attr("dy", "0.35em")
-      // .text((_, i) =>
-      //   i === 0 ? "#1" : i === 1 ? "#2" : i === 2 ? "#3" : `#${i + 1}`
-      // )
-      .style("font-size", "12px")
-      .style("font-weight", "600")
-      .style("fill", "#64748b");
-
     return () => tooltip.remove();
-  }, [data, propWidth, height]);
+  }, [data, propWidth, barColor, barHeight, barGap]);
 
   return (
-  <div
-  ref={containerRef}
-  className="chart-container h-full w-full max-w-full  animate-slide-up p-5 rounded-2xl "
->
-  <h3 className="text-sm font-medium text-muted-foreground mb-3 font-mono tracking-wide uppercase">
-    {title}
-  </h3>
-  <svg
-    ref={svgRef}
-    width="100%"
-    height="100%"
-    className="block"
-  />
-</div>
-
+    <div
+      ref={containerRef}
+      className="chart-container w-full animate-slide-up p-5 rounded-2xl"
+      style={{ height: "auto" }}
+    >
+      <h3 className="text-sm font-medium text-muted-foreground mb-3 font-mono tracking-wide uppercase">
+        {title}
+      </h3>
+      <svg ref={svgRef} width="100%" className="block" />
+    </div>
   );
 };
 

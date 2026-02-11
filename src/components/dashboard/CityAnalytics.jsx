@@ -1,11 +1,7 @@
 import { useEffect, useRef, useMemo } from "react";
 import * as d3 from "d3";
 
-const CityAnalytics = ({
-  data,
-  size = 480,
-  title,
-}) => {
+const CityAnalytics = ({ data, size = 480, title }) => {
   const svgRef = useRef(null);
 
   const chartData = useMemo(() => {
@@ -41,7 +37,6 @@ const CityAnalytics = ({
       .style("pointer-events", "none")
       .style("opacity", 0);
 
-
     const padding = 70;
     const radius = size / 2;
     const innerRadius = radius * 0.42;
@@ -71,7 +66,7 @@ const CityAnalytics = ({
       .domain([0, maxValue])
       .range([innerRadius, outerRadius]);
 
-
+    // Draw concentric circles
     [0.25, 0.5, 0.75, 1].forEach((t) => {
       svg
         .append("circle")
@@ -80,18 +75,32 @@ const CityAnalytics = ({
         .attr("stroke", "#e2e8f0");
     });
 
-    const defs = svg.append("defs");
-
-    const gradient = defs
-      .append("linearGradient")
-      .attr("id", "barGradient")
-      .attr("x1", "0%")
-      .attr("y1", "0%")
-      .attr("x2", "0%")
-      .attr("y2", "100%");
-
-    gradient.append("stop").attr("offset", "0%").attr("stop-color", "#a78bfa");
-    gradient.append("stop").attr("offset", "100%").attr("stop-color", "#7c3aed");
+    // Color scale for bars (variation)
+    const colorScale = d3
+      .scaleOrdinal()
+      .domain(chartData.map((d) => d.label))
+      .range([
+        "#a78bfa",
+        "#7c3aed",
+        "#f472b6",
+        "#facc15",
+        "#22c55e",
+        "#3b82f6",
+        "#f97316",
+        "#10b981",
+        "#6366f1",
+        "#f59e0b",
+        "#e11d48",
+        "#06b6d4",
+        "#8b5cf6",
+        "#f43f5e",
+        "#14b8a6",
+        "#f97316",
+        "#22d3ee",
+        "#4ade80",
+        "#c084fc",
+        "#f87171",
+      ]);
 
     const arc = d3
       .arc()
@@ -99,7 +108,7 @@ const CityAnalytics = ({
       .outerRadius((d) => r(d.value))
       .startAngle((d) => angle(d.label))
       .endAngle((d) => angle(d.label) + angle.bandwidth())
-      .cornerRadius(10);
+      .cornerRadius(8);
 
     svg
       .append("g")
@@ -108,15 +117,14 @@ const CityAnalytics = ({
       .enter()
       .append("path")
       .attr("d", arc)
-      .attr("fill", "url(#barGradient)")
+      .attr("fill", (d) => colorScale(d.label)) // assign color from scale
       .on("mouseenter", function (event, d) {
         d3.select(this).attr("opacity", 0.8);
-
         tooltip
           .style("opacity", 1)
           .html(
             `<div style="font-weight:600">${d.label}</div>
-           <div style="color:#6366f1">${d.value.toLocaleString()} views</div>`
+             <div style="color:#6366f1">${d.value.toLocaleString()} views</div>`
           );
       })
       .on("mousemove", (event) => {
@@ -129,7 +137,7 @@ const CityAnalytics = ({
         tooltip.style("opacity", 0);
       });
 
-
+    // Labels around the circle
     svg
       .append("g")
       .selectAll("text")
@@ -151,7 +159,7 @@ const CityAnalytics = ({
       })
       .text((d) => d.label);
 
- 
+    // Center number
     svg
       .append("text")
       .attr("text-anchor", "middle")
@@ -172,23 +180,15 @@ const CityAnalytics = ({
     return () => tooltip.remove();
   }, [chartData, size]);
 
-
   return (
-    <div className="flex flex-col w-full  p-6 rounded-2xl  ">
+    <div className="flex flex-col w-full p-6 rounded-2xl">
       <h3 className="text-sm font-medium text-muted-foreground mb-3 font-mono tracking-wide uppercase">
         {title}
       </h3>
-
       <div className="flex items-center justify-center">
-        <svg
-          ref={svgRef}
-          width={size}
-          height={size}
-          className="overflow-visible"
-        />
+        <svg ref={svgRef} width={size} height={size} className="overflow-visible" />
       </div>
     </div>
-
   );
 };
 
