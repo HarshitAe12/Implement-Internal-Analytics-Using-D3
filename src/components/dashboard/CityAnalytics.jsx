@@ -66,7 +66,6 @@ const CityAnalytics = ({ data, size = 480, title }) => {
       .domain([0, maxValue])
       .range([innerRadius, outerRadius]);
 
-    // Draw concentric circles
     [0.25, 0.5, 0.75, 1].forEach((t) => {
       svg
         .append("circle")
@@ -75,31 +74,14 @@ const CityAnalytics = ({ data, size = 480, title }) => {
         .attr("stroke", "#e2e8f0");
     });
 
-    // Color scale for bars (variation)
     const colorScale = d3
       .scaleOrdinal()
       .domain(chartData.map((d) => d.label))
       .range([
-        "#a78bfa",
-        "#7c3aed",
-        "#f472b6",
-        "#facc15",
-        "#22c55e",
-        "#3b82f6",
-        "#f97316",
-        "#10b981",
-        "#6366f1",
-        "#f59e0b",
-        "#e11d48",
-        "#06b6d4",
-        "#8b5cf6",
-        "#f43f5e",
-        "#14b8a6",
-        "#f97316",
-        "#22d3ee",
-        "#4ade80",
-        "#c084fc",
-        "#f87171",
+        "#a78bfa","#7c3aed","#f472b6","#facc15","#22c55e",
+        "#3b82f6","#f97316","#10b981","#6366f1","#f59e0b",
+        "#e11d48","#06b6d4","#8b5cf6","#f43f5e","#14b8a6",
+        "#22d3ee","#4ade80","#c084fc","#f87171",
       ]);
 
     const arc = d3
@@ -117,49 +99,8 @@ const CityAnalytics = ({ data, size = 480, title }) => {
       .enter()
       .append("path")
       .attr("d", arc)
-      .attr("fill", (d) => colorScale(d.label)) // assign color from scale
-      .on("mouseenter", function (event, d) {
-        d3.select(this).attr("opacity", 0.8);
-        tooltip
-          .style("opacity", 1)
-          .html(
-            `<div style="font-weight:600">${d.label}</div>
-             <div style="color:#6366f1">${d.value.toLocaleString()} views</div>`
-          );
-      })
-      .on("mousemove", (event) => {
-        tooltip
-          .style("left", event.pageX + 14 + "px")
-          .style("top", event.pageY - 28 + "px");
-      })
-      .on("mouseleave", function () {
-        d3.select(this).attr("opacity", 1);
-        tooltip.style("opacity", 0);
-      });
+      .attr("fill", (d) => colorScale(d.label));
 
-    // Labels around the circle
-    svg
-      .append("g")
-      .selectAll("text")
-      .data(chartData)
-      .enter()
-      .append("text")
-      .attr("font-size", "12px")
-      .attr("fill", "#334155")
-      .attr("alignment-baseline", "middle")
-      .attr("text-anchor", (d) => {
-        const a = angle(d.label) + angle.bandwidth() / 2;
-        return a > Math.PI ? "end" : "start";
-      })
-      .attr("transform", (d) => {
-        const a = angle(d.label) + angle.bandwidth() / 2;
-        const rotate = (a * 180) / Math.PI - 90;
-        const flip = a > Math.PI ? 180 : 0;
-        return `rotate(${rotate}) translate(${labelRadius},0) rotate(${flip})`;
-      })
-      .text((d) => d.label);
-
-    // Center number
     svg
       .append("text")
       .attr("text-anchor", "middle")
@@ -185,9 +126,21 @@ const CityAnalytics = ({ data, size = 480, title }) => {
       <h3 className="text-sm font-medium text-muted-foreground mb-3 font-mono tracking-wide uppercase">
         {title}
       </h3>
-      <div className="flex items-center justify-center">
-        <svg ref={svgRef} width={size} height={size} className="overflow-visible" />
-      </div>
+
+      {chartData.length === 0 ? (
+        <div className="flex items-center justify-center h-[400px] text-muted-foreground text-sm">
+          No city analytics data available
+        </div>
+      ) : (
+        <div className="flex items-center justify-center">
+          <svg
+            ref={svgRef}
+            width={size}
+            height={size}
+            className="overflow-visible"
+          />
+        </div>
+      )}
     </div>
   );
 };

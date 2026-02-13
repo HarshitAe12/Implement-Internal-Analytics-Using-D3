@@ -112,161 +112,228 @@ const Index = () => {
     })
   }, [dateRange]);
 
+  const isEmpty = (data) => {
+    return (
+      data === null ||
+      data === undefined ||
+      (Array.isArray(data) && data.length === 0)
+    );
+  };
+  const displayValue = (val) => {
+    if (val === null || val === undefined || val === 0) {
+      return "Not Found";
+    }
+    return val;
+  };
 
+
+  // ================= VIEWED PROFILE =================
   const viewedProfile = async (start_date, end_date) => {
     setMostViewedLoading(true);
     try {
-      let viewedProfile = await fetchMostViewedProfiles(start_date, end_date);
-      setMostViewedProfile(viewedProfile);
-      console.log("viewed data", viewedProfile);
-    }
-    catch (err) {
-      console.log("Most Viewed Profile Error->", err?.message)
-      showToast.error("Error while fetching the API", err?.message)
-    }
-    finally {
+      const data = await fetchMostViewedProfiles(start_date, end_date);
+
+      if (isEmpty(data)) {
+        setMostViewedProfile([]); // or null if your UI expects that
+        return;
+      }
+
+      setMostViewedProfile(data);
+      console.log("viewed data", data);
+    } catch (err) {
+      console.log("Most Viewed Profile Error->", err?.message);
+      showToast.error("Error while fetching the API");
+      setMostViewedProfile([]);
+    } finally {
       setMostViewedLoading(false);
     }
-  }
+  };
+
+  // ================= SEARCHED USER =================
   const searchedUser = async (start_date, end_date) => {
     setMostSearchLoading(true);
     try {
-      let user = await fetchMostSearchUsers(start_date, end_date)
-      setMostSearchUser(user);
-      console.log("Most searched user", user);
-    }
-    catch (err) {
-      console.log("Most Viewed Profile Error->", err?.message)
-      showToast.error("Error while fetching the API", err?.message)
-    }
-    finally {
+      const data = await fetchMostSearchUsers(start_date, end_date);
+
+      if (isEmpty(data)) {
+        setMostSearchUser([]);
+        return;
+      }
+
+      setMostSearchUser(data);
+      console.log("Most searched user", data);
+    } catch (err) {
+      console.log("Most Search Error->", err?.message);
+      showToast.error("Error while fetching the API");
+      setMostSearchUser([]);
+    } finally {
       setMostSearchLoading(false);
     }
-  }
+  };
 
+  // ================= PROFESSION =================
   const professionFun = async (start_date, end_date) => {
     setProfessionLoading(true);
     try {
-      let views = await fetchProfessionAnalytics(start_date, end_date);
-      setProfession(views);
-      console.log("Profession & Views", views);
-    }
-    catch (err) {
-      console.log("Profession & Views Error->", err)
-      showToast.error("Error while fetching the API", err?.message)
-    }
-    finally {
+      const data = await fetchProfessionAnalytics(start_date, end_date);
+
+      if (isEmpty(data)) {
+        setProfession([]);
+        return;
+      }
+
+      setProfession(data);
+      console.log("Profession & Views", data);
+    } catch (err) {
+      console.log("Profession Error->", err?.message);
+      showToast.error("Error while fetching the API");
+      setProfession([]);
+    } finally {
       setProfessionLoading(false);
     }
-  }
+  };
 
+  // ================= CITY ANALYTICS =================
   const cityAnalytics = async (start_date, end_date) => {
     setAnalyticsLoading(true);
     try {
-      let views = await fetchCityAnalitics(start_date, end_date);
-      setAnalitics(views);
-      console.log("Profession & Views", views);
-    }
-    catch (err) {
-      console.log("Profession & Views Error->", err)
-      showToast.error("Error while fetching the API", err?.message)
-    }
-    finally {
+      const data = await fetchCityAnalitics(start_date, end_date);
+
+      if (isEmpty(data)) {
+        setAnalitics([]);
+        return;
+      }
+
+      setAnalitics(data);
+      console.log("City Analytics", data);
+    } catch (err) {
+      console.log("City Analytics Error->", err?.message);
+      showToast.error("Error while fetching the API");
+      setAnalitics([]);
+    } finally {
       setAnalyticsLoading(false);
     }
-  }
+  };
 
+  // ================= CONNECTIONS =================
   const setConnection = async (start_date, end_date) => {
-
     try {
-      let views = await fetchConnections(start_date, end_date);
-      setConnections(views);
-      console.log("Connections--", views);
+      const data = await fetchConnections(start_date, end_date);
+
+      if (isEmpty(data)) {
+        setConnections([]);
+        return;
+      }
+
+      setConnections(data);
+      console.log("Connections--", data);
+    } catch (err) {
+      console.log("Connections Error->", err?.message);
+      showToast.error("Error while fetching the API");
+      setConnections([]);
     }
-    catch (err) {
-      console.log("Connections Error->", err)
-      showToast.error("Error while fetching the API", err?.message)
-    }
+  };
 
-  }
-
-  //total count for card 
-
+  // ================= TOTAL VIEW COUNT =================
   const totalViewCount = async (start_date, end_date) => {
-
     try {
-      const data = await fetchTotalViews(
-        start_date,
-        end_date,
-      );
+      const data = await fetchTotalViews(start_date, end_date);
 
-      const mapped = mapTotalVieCountToMetricCard(data)
+      if (isEmpty(data)) {
+        setTotalViews(null); // or default metric object
+        return;
+      }
+
+      const mapped = mapTotalVieCountToMetricCard(data);
       setTotalViews(mapped);
       console.log("TotalViews:", mapped);
     } catch (err) {
       console.log("Total Views Error ->", err?.message);
-      showToast.error("Error while fetching Total views", err?.message);
+      showToast.error("Error while fetching Total views");
+      setTotalViews(null);
     }
   };
+
+  // ================= SEARCH COUNT =================
   const searchCount = async (start_date, end_date) => {
     try {
       const data = await fetchSearchCount(start_date, end_date);
+
+      if (isEmpty(data)) {
+        setSearchMetric(null);
+        return;
+      }
+
       const mapped = mapSearchCountToMetricCard(data);
       setSearchMetric(mapped);
-
       console.log("Search metric mapped:", mapped);
     } catch (err) {
       console.log("Search Count Error ->", err?.message);
-      showToast.error("Error while fetching search count", err?.message);
+      showToast.error("Error while fetching search count");
+      setSearchMetric(null);
     }
   };
 
+  // ================= TOP CITY =================
   const topCityfun = async (start_date, end_date) => {
     try {
-      const data = await fetchTopCity(
-        start_date,
-        end_date,
-      );
+      const data = await fetchTopCity(start_date, end_date);
 
-      const mapped = mapTopCityToMetricCard(data)
-      console.log("Top City:", mapped);
+      if (isEmpty(data)) {
+        setTopCity(null);
+        return;
+      }
+
+      const mapped = mapTopCityToMetricCard(data);
       setTopCity(mapped);
+      console.log("Top City:", mapped);
     } catch (err) {
       console.log("Top City Error ->", err?.message);
-      showToast.error("Error while fetching Top City", err?.message);
+      showToast.error("Error while fetching Top City");
+      setTopCity(null);
     }
   };
 
+  // ================= TOP PROFESSION =================
   const topProffun = async (start_date, end_date) => {
     try {
-      const data = await fetchTopProfession(
-        start_date,
-        end_date,
-      );
+      const data = await fetchTopProfession(start_date, end_date);
+
+      if (isEmpty(data)) {
+        setTopProf(null);
+        return;
+      }
 
       const mapped = mapTopProfToMetricCard(data);
       setTopProf(mapped);
       console.log("Top Prof:", mapped);
     } catch (err) {
       console.log("Top Prof Error ->", err?.message);
-      showToast.error("Error while fetching Top Prof", err?.message);
+      showToast.error("Error while fetching Top Prof");
+      setTopProf(null);
     }
   };
 
+  // ================= ENGAGEMENT =================
   const engFun = async (start_date, end_date) => {
     try {
-      const data = await fetchEngagement(
-        start_date,
-        end_date,
-      );
+      const data = await fetchEngagement(start_date, end_date);
+
+      if (isEmpty(data)) {
+        setEng(null);
+        return;
+      }
+
       const mapped = mapEngToMetricCard(data);
       setEng(mapped);
       console.log("Eng:", mapped);
     } catch (err) {
       console.log("Eng Error ->", err?.message);
-      showToast.error("Error while fetching Engagement API", err?.message);
+      showToast.error("Error while fetching Engagement API");
+      setEng(null);
     }
   };
+
 
 
   return (
@@ -319,55 +386,45 @@ const Index = () => {
       <main className="max-w-[1440px] mx-auto px-6 py-6 space-y-8 ">
         {/* Metric Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-          {
-            totalViews &&
-            <MetricCard
-              title={totalViews?.title}
-              value={totalViews?.value}
-              delta={totalViews?.delta}
-              sparklineData={totalViews?.sparklineData}
-            />
-          }
+          <MetricCard
+            title={totalViews?.title || "Total Views"}
+            value={displayValue(totalViews?.value)}
+            delta={totalViews?.delta ?? 0}
+            sparklineData={totalViews?.sparklineData ?? []}
+          />
 
-          {
-            searchMetric && (
-              <MetricCard
-                title={searchMetric?.title}
-                value={searchMetric?.value}
-                delta={searchMetric?.delta}
-                sparklineData={searchMetric?.sparklineData}
-              />
-            )}
-          {
-            topCity &&
-            <MetricCard
-              title={topCity?.title}
-              value={topCity?.value}
-              delta={topCity?.delta}
-              sparklineData={topCity?.sparklineData}
-              sparklineColor="#f59e0b"
-            />
-          }
-          {
-            topProf &&
-            <MetricCard
-              title={topProf?.title}
-              value={topProf?.value}
-              delta={topProf?.delta}
-              sparklineData={topProf?.sparklineData}
-              sparklineColor="#3b82f6"
-            />
-          }
-          {
-            eng &&
-            <MetricCard
-              title={eng?.title}
-              value={eng?.value}
-              delta={eng?.delta}
-              sparklineData={eng?.sparklineData}
-              sparklineColor="#8b5cf6"
-            />
-          }
+          <MetricCard
+            title={searchMetric?.title || "Searches"}
+            value={displayValue(searchMetric?.value)}
+            delta={searchMetric?.delta ?? 0}
+            sparklineData={searchMetric?.sparklineData ?? []}
+          />
+
+          <MetricCard
+            title={topCity?.title || "Top City"}
+            value={displayValue(topCity?.value)}
+            delta={topCity?.delta ?? 0}
+            sparklineData={topCity?.sparklineData ?? []}
+            sparklineColor="#f59e0b"
+          />
+
+          <MetricCard
+            title={topProf?.title || "Top Profession"}
+            value={displayValue(topProf?.value)}
+            delta={topProf?.delta ?? 0}
+            sparklineData={topProf?.sparklineData ?? []}
+            sparklineColor="#3b82f6"
+          />
+
+          <MetricCard
+            title={eng?.title || "Engagement"}
+            value={displayValue(eng?.value)}
+            delta={eng?.delta ?? 0}
+            sparklineData={eng?.sparklineData ?? []}
+            sparklineColor="#8b5cf6"
+          />
+
+
           {/* <MetricCard
             title="Failed Searches"
             value={mockMetrics.failedSearches}
