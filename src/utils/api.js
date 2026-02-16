@@ -93,10 +93,8 @@ export async function fetchProfessionAnalytics({ limit = 10, start_date, end_dat
   if (!res.ok) {
     throw new Error("Failed to fetch profession analytics");
   }
-  console.log("data--", res)
 
   const data = await res.json();
-  console.log("data", data)
   return data;
 }
 
@@ -352,6 +350,59 @@ export async function fetchEngagement({
     return data;
   } catch (error) {
     console.error("[Engagement API Error]", error);
+    throw error;
+  }
+}
+
+// 100 search queries 
+
+export async function fetchSearchQueriesTable() {
+  try {
+    const response = await fetch(
+      "https://api.proinsight.com/analytics/search_query",
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        }
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Table Search Query API failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("[Table Search Query API Error]", error);
+    throw error;
+  }
+}
+
+export async function fetchAllCity({
+  start_date,
+  end_date,
+} = {}) {
+  try {
+    const response = await fetch(
+      "https://api.proinsight.com/analytics/city_analytics",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        }
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`ALl cities data failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("[ALl cities data error]", error);
     throw error;
   }
 }

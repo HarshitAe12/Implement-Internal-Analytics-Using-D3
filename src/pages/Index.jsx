@@ -16,8 +16,105 @@ import Spinner from "@/utils/Spinner";
 import D3NetworkGraph from "@/components/dashboard/UserConnectionGraph";
 import CityAnalytics from "@/components/dashboard/CityAnalytics";
 import { mapEngToMetricCard, mapSearchCountToMetricCard, mapTopCityToMetricCard, mapTopProfToMetricCard, mapTotalVieCountToMetricCard } from "@/utils/formatters";
+import ViewConnectionGraph from "@/components/dashboard/ViewConnectionGraph";
 
 const Index = () => {
+
+const nodes = [
+  {
+    id: "e70e9521-e943-4145-98c8-c628474651bd",
+    label: "Zavier Leonard",
+    group: 1,
+    connections: 3,
+    profession: "Junk Removal Specialist"
+  },
+  {
+    id: "d7711f63-43a4-448f-b47a-1009dd6808b8",
+    label: "Amy Stockberger",
+    group: 2,
+    connections: 3,
+    profession: "Realtor"
+  },
+  {
+    id: "a12b9521-e943-4145-98c8-c628474651aa",
+    label: "Michael Brown",
+    group: 1,
+    connections: 2,
+    profession: "Marketing Consultant"
+  },
+  {
+    id: "f88c9521-e943-4145-98c8-c628474651cc",
+    label: "Sarah Wilson",
+    group: 3,
+    connections: 2,
+    profession: "Business Coach"
+  },
+  {
+    id: "b55e9521-e943-4145-98c8-c628474651dd",
+    label: "Daniel Carter",
+    group: 4,
+    connections: 2,
+    profession: "Financial Advisor"
+  },
+  {
+    id: "c66e9521-e943-4145-98c8-c628474651ee",
+    label: "Olivia Smith",
+    group: 4,
+    connections: 1,
+    profession: "Insurance Broker"
+  }
+];
+
+const links = [
+
+  // BOTH (View + Community)
+  {
+    source: "e70e9521-e943-4145-98c8-c628474651bd",
+    target: "d7711f63-43a4-448f-b47a-1009dd6808b8",
+    source_name: "Zavier Leonard",
+    target_name: "Amy Stockberger",
+    value: 2,
+    type: "view"
+  },
+  {
+    source: "e70e9521-e943-4145-98c8-c628474651bd",
+    target: "d7711f63-43a4-448f-b47a-1009dd6808b8",
+    source_name: "Zavier Leonard",
+    target_name: "Amy Stockberger",
+    value: 1,
+    type: "community"
+  },
+
+  // View only
+  {
+    source: "d7711f63-43a4-448f-b47a-1009dd6808b8",
+    target: "a12b9521-e943-4145-98c8-c628474651aa",
+    source_name: "Amy Stockberger",
+    target_name: "Michael Brown",
+    value: 1,
+    type: "view"
+  },
+
+  // Community only
+  {
+    source: "a12b9521-e943-4145-98c8-c628474651aa",
+    target: "f88c9521-e943-4145-98c8-c628474651cc",
+    source_name: "Michael Brown",
+    target_name: "Sarah Wilson",
+    value: 1,
+    type: "community"
+  },
+
+  // Second mesh cluster
+  {
+    source: "b55e9521-e943-4145-98c8-c628474651dd",
+    target: "c66e9521-e943-4145-98c8-c628474651ee",
+    source_name: "Daniel Carter",
+    target_name: "Olivia Smith",
+    value: 1,
+    type: "view"
+  }
+];
 
   const defaultRange = (() => {
     const end = new Date();
@@ -134,12 +231,11 @@ const Index = () => {
       const data = await fetchMostViewedProfiles(start_date, end_date);
 
       if (isEmpty(data)) {
-        setMostViewedProfile([]); // or null if your UI expects that
+        setMostViewedProfile([]);
         return;
       }
 
       setMostViewedProfile(data);
-      console.log("viewed data", data);
     } catch (err) {
       console.log("Most Viewed Profile Error->", err?.message);
       showToast.error("Error while fetching the API");
@@ -161,7 +257,6 @@ const Index = () => {
       }
 
       setMostSearchUser(data);
-      console.log("Most searched user", data);
     } catch (err) {
       console.log("Most Search Error->", err?.message);
       showToast.error("Error while fetching the API");
@@ -183,7 +278,6 @@ const Index = () => {
       }
 
       setProfession(data);
-      console.log("Profession & Views", data);
     } catch (err) {
       console.log("Profession Error->", err?.message);
       showToast.error("Error while fetching the API");
@@ -205,7 +299,6 @@ const Index = () => {
       }
 
       setAnalitics(data);
-      console.log("City Analytics", data);
     } catch (err) {
       console.log("City Analytics Error->", err?.message);
       showToast.error("Error while fetching the API");
@@ -226,7 +319,6 @@ const Index = () => {
       }
 
       setConnections(data);
-      console.log("Connections--", data);
     } catch (err) {
       console.log("Connections Error->", err?.message);
       showToast.error("Error while fetching the API");
@@ -246,7 +338,6 @@ const Index = () => {
 
       const mapped = mapTotalVieCountToMetricCard(data);
       setTotalViews(mapped);
-      console.log("TotalViews:", mapped);
     } catch (err) {
       console.log("Total Views Error ->", err?.message);
       showToast.error("Error while fetching Total views");
@@ -266,7 +357,6 @@ const Index = () => {
 
       const mapped = mapSearchCountToMetricCard(data);
       setSearchMetric(mapped);
-      console.log("Search metric mapped:", mapped);
     } catch (err) {
       console.log("Search Count Error ->", err?.message);
       showToast.error("Error while fetching search count");
@@ -286,7 +376,6 @@ const Index = () => {
 
       const mapped = mapTopCityToMetricCard(data);
       setTopCity(mapped);
-      console.log("Top City:", mapped);
     } catch (err) {
       console.log("Top City Error ->", err?.message);
       showToast.error("Error while fetching Top City");
@@ -306,7 +395,6 @@ const Index = () => {
 
       const mapped = mapTopProfToMetricCard(data);
       setTopProf(mapped);
-      console.log("Top Prof:", mapped);
     } catch (err) {
       console.log("Top Prof Error ->", err?.message);
       showToast.error("Error while fetching Top Prof");
@@ -326,7 +414,6 @@ const Index = () => {
 
       const mapped = mapEngToMetricCard(data);
       setEng(mapped);
-      console.log("Eng:", mapped);
     } catch (err) {
       console.log("Eng Error ->", err?.message);
       showToast.error("Error while fetching Engagement API");
@@ -486,6 +573,7 @@ const Index = () => {
             </div>
           )}
         </div>
+        <ViewConnectionGraph links={links} nodes={nodes} />
 
 
         {/* Profession Analytics */}
@@ -498,6 +586,8 @@ const Index = () => {
             height={520}
           />
         )}
+
+
 
         {/* Footer */}
         <footer className="border-t border-slate-200 pt-4 pb-8">

@@ -1,5 +1,18 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+
+import { fetchSearchQueriesTable } from "@/utils/api";
+import { showToast } from "@/utils/showToast";
+import { SearchQueriesTable } from "./Table/SearchQueriesTable";
+
 
 const MostSearchUser = ({
   data = [],
@@ -11,6 +24,25 @@ const MostSearchUser = ({
 }) => {
   const containerRef = useRef(null);
   const svgRef = useRef(null);
+
+  // table data 
+  const [searchQuery, setSearchQuery] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetchSearchQuery();
+  }, [])
+  const fetchSearchQuery = async () => {
+    try {
+      setLoading(true);
+      const data = await fetchSearchQueriesTable();
+      setSearchQuery(data || []);
+      setLoading(false);
+    } catch (err) {
+      showToast.error("Error while fetching 100 Search Query API");
+      setLoading(false);
+    }
+  }
 
   useEffect(() => {
     // Always clear SVG first
@@ -149,7 +181,7 @@ const MostSearchUser = ({
   return (
     <div
       ref={containerRef}
-      className="relative w-full p-5 rounded-2xl"
+      className="relative w-full p-5 rounded-2xl border bg-card shadow-sm"
     >
       <h3 className="text-sm font-medium text-muted-foreground mb-3 font-mono tracking-wide uppercase">
         {title}
@@ -160,10 +192,37 @@ const MostSearchUser = ({
           No search data available
         </div>
       ) : (
-        <svg ref={svgRef} width="100%" className="block" />
+        <>
+          <svg ref={svgRef} width="100%" className="block" />
+
+          {/* Bottom Right Button */}
+          <div className="flex justify-end mt-4">
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button onClick={fetchSearchQuery} className="bg-gray-600 text-white shadow-sm border border-r-0">
+                  View Last 100 Queries
+                </Button>
+              </DialogTrigger>
+
+              <DialogContent className="max-w-6xl">
+                <DialogHeader>
+                  <DialogTitle>All Search Queries</DialogTitle>
+                </DialogHeader>
+
+                {loading ? (
+                  <div className="py-10 text-center">Loading...</div>
+                ) : (
+                  <SearchQueriesTable data={searchQuery} />
+                )}
+              </DialogContent>
+            </Dialog>
+          </div>
+
+        </>
       )}
     </div>
   );
+
 };
 
 export default MostSearchUser;

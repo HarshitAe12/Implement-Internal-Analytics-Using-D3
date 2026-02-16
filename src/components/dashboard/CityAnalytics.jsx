@@ -1,9 +1,36 @@
-import { useEffect, useRef, useMemo } from "react";
+import { useEffect, useRef, useMemo, useState } from "react";
 import * as d3 from "d3";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import CityTable from "./Table/CityTable";
+import { fetchAllCity } from "@/utils/api";
+import { Button } from "@/components/ui/button";
+import { showToast } from "@/utils/showToast";
 
 const CityAnalytics = ({ data, size = 480, title }) => {
   const svgRef = useRef(null);
-
+    const [allcities, setAllCities] = useState([]);
+    const [loading, setLoading] = useState(false);
+      useEffect(() => {
+        fetchAllCities();
+      }, [])
+      const fetchAllCities = async () => {
+        try {
+          setLoading(true);
+          const data = await fetchAllCity();
+          setAllCities(data?.most_viewed_cities || []);
+          setLoading(false);
+        } catch (err) {
+          console.log("ALl Cities Query Error ->", err?.message);
+          showToast.error("Error while fetching ALl Cities API");
+          setLoading(false);
+        }
+      }
   const chartData = useMemo(() => {
     if (!data?.most_viewed_cities?.length) return [];
 
@@ -187,6 +214,27 @@ const CityAnalytics = ({ data, size = 480, title }) => {
       </h3>
       <div className="flex items-center justify-center">
         <svg ref={svgRef} width={size} height={size} className="overflow-visible" />
+      </div>
+      <div className="flex justify-end mt-4">
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button onClick={fetchAllCities} className="bg-gray-600 text-white shadow-sm border border-r-0">
+              View All Cities
+            </Button>
+          </DialogTrigger>
+
+          <DialogContent className="max-w-6xl">
+            <DialogHeader>
+              <DialogTitle>All Searched Cities</DialogTitle>
+            </DialogHeader>
+
+            {loading ? (
+              <div className="py-10 text-center">Loading...</div>
+            ) : (
+              <CityTable data={allcities} />
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

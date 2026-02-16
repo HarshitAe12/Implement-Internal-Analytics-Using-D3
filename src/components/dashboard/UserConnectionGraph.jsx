@@ -79,27 +79,27 @@ const D3NetworkGraph = ({
             return initials.toUpperCase();
         };
 
-      /* ----------- Simulation (Compact Layout) ----------- */
-const simulation = d3
-  .forceSimulation(simulationNodes)
-  .force(
-    "link",
-    d3
-      .forceLink(simulationLinks)
-      .id((d) => d.id)
-      .distance(55)     //  Reduced from 80 → closer links
-      .strength(1.1)      // Stronger attraction
-  )
-  .force(
-    "charge",
-    d3.forceManyBody().strength(-60) //  Reduced repulsion
-  )
-  .force(
-    "collision",
-    d3.forceCollide().radius((d) => getRadius(d) + 4) // Smaller padding
-  )
-  .force("center", d3.forceCenter(w / 2, h / 2))
-  .alphaDecay(0.04); // Slightly faster stabilization
+        /* ----------- Simulation (Compact Layout) ----------- */
+        const simulation = d3
+            .forceSimulation(simulationNodes)
+            .force(
+                "link",
+                d3
+                    .forceLink(simulationLinks)
+                    .id((d) => d.id)
+                    .distance(55)     //  Reduced from 80 → closer links
+                    .strength(1.1)      // Stronger attraction
+            )
+            .force(
+                "charge",
+                d3.forceManyBody().strength(-60) //  Reduced repulsion
+            )
+            .force(
+                "collision",
+                d3.forceCollide().radius((d) => getRadius(d) + 4) // Smaller padding
+            )
+            .force("center", d3.forceCenter(w / 2, h / 2))
+            .alphaDecay(0.04); // Slightly faster stabilization
 
 
         const g = svg.append("g");
@@ -230,7 +230,7 @@ const simulation = d3
         ${d.label}
       </div>
       <div style="opacity:.7;margin-bottom:4px">
-        ${d.connections || 0} connections
+        ${d.connections || 0} Views
       </div>
       ${connectedNodes.length > 0
                             ? `<div style="font-size:11px;color:#555">
@@ -289,7 +289,7 @@ const simulation = d3
             </h3>
 
             <p className="text-xs text-muted-foreground mb-3">
-                Drag · Zoom · Hover to highlight connections
+                Drag · Zoom · Hover to highlight Views
             </p>
 
             <svg
