@@ -268,7 +268,7 @@ const ViewConnectionGraph = ({
             </h3>
 
             <div className="flex gap-8 mb-5 text-xs text-gray-600">
-                <Legend color="bg-indigo-500" label="View" />
+                <Legend color="bg-red-500" label="View" />
                 <Legend color="bg-emerald-500" dashed label="Community" />
                 <Legend color="bg-purple-500" label="Both" />
             </div>
