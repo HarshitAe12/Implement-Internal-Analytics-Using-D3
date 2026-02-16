@@ -406,3 +406,31 @@ export async function fetchAllCity({
     throw error;
   }
 }
+
+export async function fetchAllConnections({
+  start_date,
+  end_date,
+} = {}) {
+  try {
+    const response = await fetch(
+      "https://api.proinsight.com/analytics/graph",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        }
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`All Connections data failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log("data----",data)
+    return data;
+  } catch (error) {
+    console.error("[All Connections data error]", error);
+    throw error;
+  }
+}

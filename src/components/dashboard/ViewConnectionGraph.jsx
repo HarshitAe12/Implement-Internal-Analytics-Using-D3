@@ -4,7 +4,7 @@ import * as d3 from "d3";
 const ViewConnectionGraph = ({
     nodes = [],
     links = [],
-    height = 500,
+    height = 700,
     title = "Connection Network",
 }) => {
     const svgRef = useRef(null);
@@ -79,7 +79,7 @@ const ViewConnectionGraph = ({
         const colorScale = d3.scaleOrdinal(d3.schemeTableau10);
 
         const linkColor = (type) => {
-            if (type === "view") return "#6366f1";
+            if (type === "view") return "red";
             if (type === "community") return "#10b981";
             if (type === "both") return "#8b5cf6";
             return "#cbd5e1";

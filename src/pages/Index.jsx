@@ -7,7 +7,7 @@ import {
 } from "../data/mockData";
 import DateRangeFilter from "../components/dashboard/DateRangeFilter";
 import MetricCard from "../components/dashboard/MetricCard";
-import { fetchAllProfilesViewCount, fetchCityAnalitics, fetchConnections, fetchEngagement, fetchMostSearchUsers, fetchMostViewedProfiles, fetchProfessionAnalytics, fetchSearchCount, fetchTopCity, fetchTopProfession, fetchTotalViews } from "../utils/api";
+import { fetchAllConnections, fetchAllProfilesViewCount, fetchCityAnalitics, fetchConnections, fetchEngagement, fetchMostSearchUsers, fetchMostViewedProfiles, fetchProfessionAnalytics, fetchSearchCount, fetchTopCity, fetchTopProfession, fetchTotalViews } from "../utils/api";
 import { showToast } from "@/utils/showToast";
 import MostViewedProfile from "@/components/dashboard/MostViewedProfile";
 import MostSearchUser from "@/components/dashboard/MostSearchUser";
@@ -20,101 +20,6 @@ import ViewConnectionGraph from "@/components/dashboard/ViewConnectionGraph";
 
 const Index = () => {
 
-const nodes = [
-  {
-    id: "e70e9521-e943-4145-98c8-c628474651bd",
-    label: "Zavier Leonard",
-    group: 1,
-    connections: 3,
-    profession: "Junk Removal Specialist"
-  },
-  {
-    id: "d7711f63-43a4-448f-b47a-1009dd6808b8",
-    label: "Amy Stockberger",
-    group: 2,
-    connections: 3,
-    profession: "Realtor"
-  },
-  {
-    id: "a12b9521-e943-4145-98c8-c628474651aa",
-    label: "Michael Brown",
-    group: 1,
-    connections: 2,
-    profession: "Marketing Consultant"
-  },
-  {
-    id: "f88c9521-e943-4145-98c8-c628474651cc",
-    label: "Sarah Wilson",
-    group: 3,
-    connections: 2,
-    profession: "Business Coach"
-  },
-  {
-    id: "b55e9521-e943-4145-98c8-c628474651dd",
-    label: "Daniel Carter",
-    group: 4,
-    connections: 2,
-    profession: "Financial Advisor"
-  },
-  {
-    id: "c66e9521-e943-4145-98c8-c628474651ee",
-    label: "Olivia Smith",
-    group: 4,
-    connections: 1,
-    profession: "Insurance Broker"
-  }
-];
-
-const links = [
-
-  // BOTH (View + Community)
-  {
-    source: "e70e9521-e943-4145-98c8-c628474651bd",
-    target: "d7711f63-43a4-448f-b47a-1009dd6808b8",
-    source_name: "Zavier Leonard",
-    target_name: "Amy Stockberger",
-    value: 2,
-    type: "view"
-  },
-  {
-    source: "e70e9521-e943-4145-98c8-c628474651bd",
-    target: "d7711f63-43a4-448f-b47a-1009dd6808b8",
-    source_name: "Zavier Leonard",
-    target_name: "Amy Stockberger",
-    value: 1,
-    type: "community"
-  },
-
-  // View only
-  {
-    source: "d7711f63-43a4-448f-b47a-1009dd6808b8",
-    target: "a12b9521-e943-4145-98c8-c628474651aa",
-    source_name: "Amy Stockberger",
-    target_name: "Michael Brown",
-    value: 1,
-    type: "view"
-  },
-
-  // Community only
-  {
-    source: "a12b9521-e943-4145-98c8-c628474651aa",
-    target: "f88c9521-e943-4145-98c8-c628474651cc",
-    source_name: "Michael Brown",
-    target_name: "Sarah Wilson",
-    value: 1,
-    type: "community"
-  },
-
-  // Second mesh cluster
-  {
-    source: "b55e9521-e943-4145-98c8-c628474651dd",
-    target: "c66e9521-e943-4145-98c8-c628474651ee",
-    source_name: "Daniel Carter",
-    target_name: "Olivia Smith",
-    value: 1,
-    type: "view"
-  }
-];
 
   const defaultRange = (() => {
     const end = new Date();
@@ -146,6 +51,13 @@ const links = [
   const [connections, setConnections] = useState([])
   const [connectionLoading, setConnectionLoading] = useState(false)
 
+  const [graphData, setGraphData] = useState({
+    nodes: [],
+    links: []
+  });
+
+  const [allConnectionLoading, setAllConnectionLoading] = useState(false)
+
   // HEADER CARDS 
 
   const [totalViews, setTotalViews] = useState(null);
@@ -154,60 +66,37 @@ const links = [
   const [topProf, setTopProf] = useState(null);
   const [eng, setEng] = useState(null);
 
-
   useEffect(() => {
     if (!dateRange.start || !dateRange.end) return;
 
-    viewedProfile({
+    const payload = {
       start_date: dateRange.start,
       end_date: dateRange.end,
-    });
+    };
 
-    searchedUser({
-      start_date: dateRange.start,
-      end_date: dateRange.end,
-    });
+    const fetchAll = async () => {
+      try {
+        await Promise.all([
+          viewedProfile(payload),
+          searchedUser(payload),
+          professionFun(payload),
+          totalViewCount(payload),
+          cityAnalytics(payload),
+          searchCount(payload),
+          setConnection(payload),
+          topCityfun(payload),
+          topProffun(payload),
+          engFun(payload),
+          fetchAllConnectionsData(payload),
+        ]);
+      } catch (err) {
+        console.log("Dashboard Load Error:", err);
+      }
+    };
 
-    professionFun({
-      start_date: dateRange.start,
-      end_date: dateRange.end,
-    });
-
-    totalViewCount({
-      start_date: dateRange.start,
-      end_date: dateRange.end,
-    });
-
-    cityAnalytics({
-      start_date: dateRange.start,
-      end_date: dateRange.end,
-    })
-
-    searchCount({
-      start_date: dateRange.start,
-      end_date: dateRange.end,
-    })
-
-    setConnection({
-      start_date: dateRange.start,
-      end_date: dateRange.end,
-    })
-
-    topCityfun({
-      start_date: dateRange.start,
-      end_date: dateRange.end,
-    })
-
-    topProffun({
-      start_date: dateRange.start,
-      end_date: dateRange.end,
-    })
-
-    engFun({
-      start_date: dateRange.start,
-      end_date: dateRange.end,
-    })
+    fetchAll();
   }, [dateRange]);
+
 
   const isEmpty = (data) => {
     return (
@@ -287,7 +176,6 @@ const links = [
     }
   };
 
-  // ================= CITY ANALYTICS =================
   const cityAnalytics = async (start_date, end_date) => {
     setAnalyticsLoading(true);
     try {
@@ -420,6 +308,36 @@ const links = [
       setEng(null);
     }
   };
+
+  const fetchAllConnectionsData = async (start_date, end_date) => {
+    try {
+      setAllConnectionLoading(true);
+      const data = await fetchAllConnections(start_date, end_date);
+
+      const filteredLinks = data?.links?.filter(
+        link => link.source && link.target && link.source !== link.target
+      );
+
+      setGraphData({
+        nodes: data?.nodes || [],
+        links: filteredLinks || []
+      });
+
+    } catch (err) {
+      console.log("fetch all connections Error ->", err?.message);
+      showToast.error("Error while fetch all connections API");
+      setGraphData({
+        nodes: [],
+        links: []
+      });
+
+    }
+    finally {
+      setAllConnectionLoading(false)
+    }
+  };
+
+
 
 
 
@@ -573,7 +491,16 @@ const links = [
             </div>
           )}
         </div>
-        <ViewConnectionGraph links={links} nodes={nodes} />
+
+        {
+          allConnectionLoading ? <Spinner />
+            :
+            <ViewConnectionGraph
+              nodes={graphData?.nodes}
+              links={graphData?.links}
+            />
+
+        }
 
 
         {/* Profession Analytics */}
