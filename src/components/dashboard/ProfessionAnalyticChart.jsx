@@ -9,7 +9,7 @@ const ProfessionAnalyticChart = ({
   const containerRef = useRef(null);
   const svgRef = useRef(null);
 
- 
+
   const mappedData = useMemo(() => {
     if (
       !data ||

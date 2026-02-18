@@ -1,17 +1,16 @@
 import { useRef, useEffect, useState } from "react";
 import * as d3 from "d3";
 
-const ViewConnectionGraph = ({
+const ViewCommunity = ({
     nodes = [],
     links = [],
     height = 700,
-    title = "Connection Network",
+    title = "Community Network",
 }) => {
     const svgRef = useRef(null);
     const containerRef = useRef(null);
     const [width, setWidth] = useState(0);
 
-    /* ---------------- Resize ---------------- */
     useEffect(() => {
         const observer = new ResizeObserver((entries) => {
             setWidth(entries[0].contentRect.width);
@@ -21,51 +20,18 @@ const ViewConnectionGraph = ({
         return () => observer.disconnect();
     }, []);
 
- 
     useEffect(() => {
         if (!width || !nodes.length) return;
 
         const svg = d3.select(svgRef.current);
         svg.selectAll("*").remove();
 
-        /* ---------- Merge Links ---------- */
-        const merged = new Map();
-
-        links.forEach((l) => {
-            const key = `${l.source}-${l.target}`;
-            if (!merged.has(key)) {
-                merged.set(key, {
-                    source: l.source,
-                    target: l.target,
-                    types: new Set([l.type]),
-                });
-            } else {
-                merged.get(key).types.add(l.type);
-            }
-        });
-
-        const simulationLinks = Array.from(merged.values()).map((l) => ({
-            source: l.source,
-            target: l.target,
-            type: l.types.size === 2 ? "both" : [...l.types][0],
-        }));
+        const communityLinks = links.filter(
+            (l) => l.type === "community"
+        );
 
         const simulationNodes = nodes.map((n) => ({ ...n }));
-
-        /* ---------- Arrow ---------- */
-        svg
-            .append("defs")
-            .append("marker")
-            .attr("id", "arrow")
-            .attr("viewBox", "0 -5 10 10")
-            .attr("refX", 22)
-            .attr("refY", 0)
-            .attr("markerWidth", 6)
-            .attr("markerHeight", 6)
-            .attr("orient", "auto")
-            .append("path")
-            .attr("d", "M0,-5L10,0L0,5")
-            .attr("fill", "#9ca3af");
+        const simulationLinks = communityLinks.map((l) => ({ ...l }));
 
         const g = svg.append("g");
 
@@ -75,17 +41,9 @@ const ViewConnectionGraph = ({
             })
         );
 
-        /* ---------- Color ---------- */
+  
         const colorScale = d3.scaleOrdinal(d3.schemeTableau10);
 
-        const linkColor = (type) => {
-            if (type === "view") return "red";
-            if (type === "community") return "#10b981";
-            if (type === "both") return "#8b5cf6";
-            return "#cbd5e1";
-        };
-
-        /* ---------- Simulation ---------- */
         const simulation = d3
             .forceSimulation(simulationNodes)
             .force(
@@ -96,21 +54,16 @@ const ViewConnectionGraph = ({
             .force("center", d3.forceCenter(width / 2, height / 2))
             .force("collision", d3.forceCollide().radius(50));
 
-        /* ---------- Links ---------- */
         const link = g
             .append("g")
             .selectAll("line")
             .data(simulationLinks)
             .join("line")
-            .attr("stroke", (d) => linkColor(d.type))
-            .attr("stroke-width", (d) => (d.type === "both" ? 4 : 2.5))
-            .attr("stroke-dasharray", (d) =>
-                d.type === "community" ? "6 4" : null
-            )
-            .attr("marker-end", "url(#arrow)")
+            .attr("stroke", "#10b981")
+            .attr("stroke-width", 3)
+            .attr("stroke-dasharray", "6 4")
             .attr("opacity", 0.9);
 
-        /* ---------- Nodes ---------- */
         const node = g
             .append("g")
             .selectAll("g")
@@ -134,15 +87,13 @@ const ViewConnectionGraph = ({
                     })
             );
 
-        node
-            .append("circle")
+        node.append("circle")
             .attr("r", 30)
             .attr("fill", (d) => colorScale(d.group))
             .attr("stroke", "#fff")
             .attr("stroke-width", 3);
 
-        node
-            .append("text")
+        node.append("text")
             .text((d) =>
                 d.label
                     .split(" ")
@@ -157,7 +108,6 @@ const ViewConnectionGraph = ({
             .attr("font-weight", 600)
             .style("pointer-events", "none");
 
-        /* ---------- Tooltip ---------- */
         const tooltip = d3
             .select(containerRef.current)
             .append("div")
@@ -179,9 +129,9 @@ const ViewConnectionGraph = ({
             tooltip.style("left", x + 15 + "px").style("top", y + 15 + "px");
         }
 
-        /* ---------- Highlight Logic ---------- */
         function highlightConnections(selectedNode) {
             const connectedIds = new Set();
+
             simulationLinks.forEach((l) => {
                 if (l.source.id === selectedNode.id)
                     connectedIds.add(l.target.id);
@@ -195,7 +145,7 @@ const ViewConnectionGraph = ({
 
             link.attr("opacity", (l) =>
                 l.source.id === selectedNode.id ||
-                    l.target.id === selectedNode.id
+                l.target.id === selectedNode.id
                     ? 1
                     : 0.1
             );
@@ -206,21 +156,21 @@ const ViewConnectionGraph = ({
             link.attr("opacity", 0.9);
         }
 
-        /* ---------- Node Events ---------- */
         node
             .on("mousemove", (event, d) => {
                 tooltip
                     .html(`
-            <div style="font-weight:600; font-size:14px; margin-bottom:6px;">
-              ${d.label}
-            </div>
-            <div style="opacity:0.85; margin-bottom:6px;">
-              ${d.profession}
-            </div>
-            <div style="font-size:12px; opacity:0.75;">
-              Connections: <strong>${d.connections ?? 0}</strong>
-            </div>
-          `)
+                        <div style="font-weight:600; font-size:14px; margin-bottom:6px;">
+                            ${d.label}
+                        </div>
+                        <div style="opacity:0.85; margin-bottom:6px;">
+                            ${d.profession}
+                        </div>
+                        <div style="font-size:12px; opacity:0.75;">
+                            Community Connections: 
+                            <strong>${d.connections ?? 0}</strong>
+                        </div>
+                    `)
                     .style("opacity", 1);
 
                 positionTooltip(event);
@@ -231,23 +181,12 @@ const ViewConnectionGraph = ({
                 resetHighlight();
             });
 
-        /* ---------- Tick ---------- */
         simulation.on("tick", () => {
             link
                 .attr("x1", (d) => d.source.x)
                 .attr("y1", (d) => d.source.y)
-                .attr("x2", (d) => {
-                    const dx = d.target.x - d.source.x;
-                    const dy = d.target.y - d.source.y;
-                    const dist = Math.sqrt(dx * dx + dy * dy);
-                    return d.target.x - (dx / dist) * 40;
-                })
-                .attr("y2", (d) => {
-                    const dx = d.target.x - d.source.x;
-                    const dy = d.target.y - d.source.y;
-                    const dist = Math.sqrt(dx * dx + dy * dy);
-                    return d.target.y - (dy / dist) * 40;
-                });
+                .attr("x2", (d) => d.target.x)
+                .attr("y2", (d) => d.target.y);
 
             node.attr("transform", (d) => `translate(${d.x},${d.y})`);
         });
@@ -267,15 +206,13 @@ const ViewConnectionGraph = ({
                 {title}
             </h3>
 
-            <div className="flex gap-8 mb-5 text-xs text-gray-600">
-                <Legend color="bg-red-500" label="View" />
+            <div className="flex gap-4 mb-5 text-xs text-gray-600">
                 <Legend color="bg-emerald-500" dashed label="Community" />
-                <Legend color="bg-purple-500" label="Both" />
             </div>
 
             {nodes.length === 0 ? (
                 <div className="text-center text-gray-400 py-20">
-                    No connection data available
+                    No community data available
                 </div>
             ) : (
                 <svg ref={svgRef} width={width} height={height} />
@@ -287,11 +224,12 @@ const ViewConnectionGraph = ({
 const Legend = ({ color, label, dashed }) => (
     <div className="flex items-center gap-2">
         <div
-            className={`w-5 h-[3px] ${color} ${dashed ? "border-t border-dashed border-current" : ""
-                }`}
+            className={`w-5 h-[3px] ${color} ${
+                dashed ? "border-t border-dashed border-current" : ""
+            }`}
         />
         <span>{label}</span>
     </div>
 );
 
-export default ViewConnectionGraph;
+export default ViewCommunity;

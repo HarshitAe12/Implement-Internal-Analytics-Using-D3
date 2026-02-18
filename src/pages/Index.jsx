@@ -7,7 +7,7 @@ import {
 } from "../data/mockData";
 import DateRangeFilter from "../components/dashboard/DateRangeFilter";
 import MetricCard from "../components/dashboard/MetricCard";
-import { fetchAllConnections, fetchAllProfilesViewCount, fetchCityAnalitics, fetchConnections, fetchEngagement, fetchMostSearchUsers, fetchMostViewedProfiles, fetchProfessionAnalytics, fetchSearchCount, fetchTopCity, fetchTopProfession, fetchTotalViews } from "../utils/api";
+import { fetchAllCommunity, fetchAllConnections, fetchAllProfilesViewCount, fetchCityAnalitics, fetchConnections, fetchEngagement, fetchMostSearchUsers, fetchMostViewedProfiles, fetchProfessionAnalytics, fetchSearchCount, fetchTopCity, fetchTopProfession, fetchTotalViews } from "../utils/api";
 import { showToast } from "@/utils/showToast";
 import MostViewedProfile from "@/components/dashboard/MostViewedProfile";
 import MostSearchUser from "@/components/dashboard/MostSearchUser";
@@ -17,6 +17,7 @@ import D3NetworkGraph from "@/components/dashboard/UserConnectionGraph";
 import CityAnalytics from "@/components/dashboard/CityAnalytics";
 import { mapEngToMetricCard, mapSearchCountToMetricCard, mapTopCityToMetricCard, mapTopProfToMetricCard, mapTotalVieCountToMetricCard } from "@/utils/formatters";
 import ViewConnectionGraph from "@/components/dashboard/ViewConnectionGraph";
+import ViewCommunity from "@/components/dashboard/ViewCommunity";
 
 const Index = () => {
 
@@ -58,6 +59,12 @@ const Index = () => {
 
   const [allConnectionLoading, setAllConnectionLoading] = useState(false)
 
+  const [community,setCommunity]=useState({
+    nodes: [],
+    links: []
+  })
+  const [communityLoading,setCommunityLoading]=useState(false)
+
   // HEADER CARDS 
 
   const [totalViews, setTotalViews] = useState(null);
@@ -88,6 +95,7 @@ const Index = () => {
           topProffun(payload),
           engFun(payload),
           fetchAllConnectionsData(payload),
+          fetchCommunity(payload)
         ]);
       } catch (err) {
         console.log("Dashboard Load Error:", err);
@@ -176,7 +184,7 @@ const Index = () => {
     }
   };
 
-  const cityAnalytics = async (start_date, end_date) => {
+ const cityAnalytics = async (start_date, end_date) => {
     setAnalyticsLoading(true);
     try {
       const data = await fetchCityAnalitics(start_date, end_date);
@@ -337,9 +345,34 @@ const Index = () => {
     }
   };
 
+    const fetchCommunity = async (start_date, end_date) => {
+    try {
+      setCommunityLoading(true);
 
+      const data = await fetchAllCommunity(start_date, end_date);
 
+      const filteredLinks = data?.links?.filter(
+        link => link.source && link.target && link.source !== link.target
+      );
+       setCommunity({
+        nodes: data?.nodes || [],
+        links: filteredLinks || []
+      });
+      console.log("community data",data)
 
+    } catch (err) {
+      console.log("fetch all community Error ->", err?.message);
+      showToast.error("Error while fetch all community API");
+        setCommunity({
+        nodes: [],
+        links: []
+      });
+
+    }
+    finally {
+      setCommunityLoading(false)
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -451,16 +484,12 @@ const Index = () => {
             yLabel="Views"
           />
         )}
-
-
         {/* Network Graph */}
         {
           connectionLoading ? (<Spinner />)
             :
             <D3NetworkGraph nodes={connections?.nodes} links={connections?.links} height={600} />
         }
-
-
         {/* Analytics Row */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 overflow-x-auto w-full rounded-xl border border-slate-200 p-7">
           {analyticsLoading ? (
@@ -499,9 +528,7 @@ const Index = () => {
               nodes={graphData?.nodes}
               links={graphData?.links}
             />
-
         }
-
 
         {/* Profession Analytics */}
         {professionLoading ? (
@@ -514,8 +541,14 @@ const Index = () => {
           />
         )}
 
-
-
+        {
+          communityLoading ? <Spinner />
+          :
+          <ViewCommunity 
+            nodes={community?.nodes}
+              links={community?.links}
+          />
+        }
         {/* Footer */}
         <footer className="border-t border-slate-200 pt-4 pb-8">
           <div className="flex flex-col md:flex-row items-center justify-between text-xs font-mono text-slate-500">

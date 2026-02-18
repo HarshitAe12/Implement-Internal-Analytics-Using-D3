@@ -242,7 +242,6 @@ const D3NetworkGraph = ({
     `,
                 });
             })
-
             .on("mouseout", (event) => {
                 node.select("circle").attr("opacity", 1);
                 link.attr("stroke-opacity", 0.5);

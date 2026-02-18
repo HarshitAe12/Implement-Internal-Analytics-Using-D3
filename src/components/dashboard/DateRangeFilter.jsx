@@ -29,7 +29,6 @@ const DateRangeFilter = ({ onRangeChange }) => {
         size={14}
         className="text-slate-500"
       />
-
       {/* Preset Pills */}
       <div className="flex  gap-1 rounded-lg  p-1 ">
         {presets.map((preset, i) => (

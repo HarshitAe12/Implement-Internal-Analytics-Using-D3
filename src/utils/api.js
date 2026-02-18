@@ -421,16 +421,38 @@ export async function fetchAllConnections({
         }
       }
     );
-
     if (!response.ok) {
       throw new Error(`All Connections data failed: ${response.status}`);
     }
-
     const data = await response.json();
-    console.log("data----",data)
     return data;
   } catch (error) {
     console.error("[All Connections data error]", error);
+    throw error;
+  }
+}
+export async function fetchAllCommunity({
+  start_date,
+  end_date,
+} = {}) {
+  try {
+    const response = await fetch(
+      "https://api.proinsight.com/analytics/get_community_graph",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        }
+      }
+    );
+    if (!response.ok) {
+      throw new Error(`All Community data failed: ${response.status}`);
+    }
+    const data = await response.json();
+    console.log("data----", data)
+    return data;
+  } catch (error) {
+    console.error("[All Community data error]", error);
     throw error;
   }
 }
