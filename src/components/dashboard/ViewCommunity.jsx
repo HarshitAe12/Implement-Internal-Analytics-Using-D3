@@ -1,16 +1,19 @@
 import { useRef, useEffect, useState } from "react";
 import * as d3 from "d3";
+import { useNavigate } from "react-router-dom";
 
 const ViewCommunity = ({
     nodes = [],
     links = [],
-    height = 520, // slightly smaller height
+    height = 520,
     title = "Community Network",
 }) => {
     const svgRef = useRef(null);
     const containerRef = useRef(null);
     const [width, setWidth] = useState(0);
+    const navigate = useNavigate();
 
+    /* ---------- Resize ---------- */
     useEffect(() => {
         const observer = new ResizeObserver((entries) => {
             setWidth(entries[0].contentRect.width);
@@ -33,7 +36,6 @@ const ViewCommunity = ({
 
         const g = svg.append("g");
 
-        // Zoom
         svg.call(
             d3.zoom()
                 .scaleExtent([0.8, 2])
@@ -44,23 +46,21 @@ const ViewCommunity = ({
 
         const colorScale = d3.scaleOrdinal(d3.schemeTableau10);
 
-        // 🔥 ULTRA COMPACT FORCES
         const simulation = d3
             .forceSimulation(simulationNodes)
             .force(
                 "link",
                 d3.forceLink(simulationLinks)
                     .id((d) => d.id)
-                    .distance(50) // very tight spacing
+                    .distance(50)
             )
-            .force("charge", d3.forceManyBody().strength(-85)) // low repulsion
+            .force("charge", d3.forceManyBody().strength(-85))
             .force("center", d3.forceCenter(width / 2, height / 2))
-            .force("collision", d3.forceCollide().radius(20)) // small gap
-            .force("x", d3.forceX(width / 2).strength(0.1)) // pull inward
+            .force("collision", d3.forceCollide().radius(20))
+            .force("x", d3.forceX(width / 2).strength(0.1))
             .force("y", d3.forceY(height / 2).strength(0.1))
             .alphaDecay(0.08);
 
-        // Links
         const link = g
             .append("g")
             .selectAll("line")
@@ -71,7 +71,6 @@ const ViewCommunity = ({
             .attr("stroke-dasharray", "4 3")
             .attr("opacity", 0.8);
 
-        // Nodes
         const node = g
             .append("g")
             .selectAll("g")
@@ -95,14 +94,12 @@ const ViewCommunity = ({
                     })
             );
 
-        // 🔹 Smaller circles
         node.append("circle")
             .attr("r", 16)
             .attr("fill", (d) => colorScale(d.group))
             .attr("stroke", "#fff")
             .attr("stroke-width", 2);
 
-        // Smaller initials
         node.append("text")
             .text((d) =>
                 d.label
@@ -118,26 +115,27 @@ const ViewCommunity = ({
             .attr("font-weight", 600)
             .style("pointer-events", "none");
 
-        // Tooltip
+        /* ---------------- TOOLTIP ---------------- */
+
         const tooltip = d3
             .select(containerRef.current)
             .append("div")
             .style("position", "absolute")
-            .style("background", "#111827")
-            .style("color", "#fff")
-            .style("padding", "10px 14px")
-            .style("border-radius", "12px")
+            .style("background", "#ffffff")
+            .style("color", "#111827")
+            .style("padding", "14px")
+            .style("border-radius", "14px")
             .style("font-size", "12px")
             .style("line-height", "1.4")
-            .style("box-shadow", "0 10px 30px rgba(0,0,0,0.25)")
-            .style("pointer-events", "none")
+            .style("box-shadow", "0 20px 40px rgba(0,0,0,0.15)")
+            .style("pointer-events", "auto")
             .style("opacity", 0)
             .style("transition", "opacity 0.15s ease")
-            .style("max-width", "220px");
+            .style("min-width", "180px");
 
         function positionTooltip(event) {
             const [x, y] = d3.pointer(event, containerRef.current);
-            tooltip.style("left", x + 12 + "px").style("top", y + 12 + "px");
+            tooltip.style("left", x + 15 + "px").style("top", y + 15 + "px");
         }
 
         function highlightConnections(selectedNode) {
@@ -156,7 +154,7 @@ const ViewCommunity = ({
 
             link.attr("opacity", (l) =>
                 l.source.id === selectedNode.id ||
-                    l.target.id === selectedNode.id
+                l.target.id === selectedNode.id
                     ? 1
                     : 0.1
             );
@@ -167,30 +165,55 @@ const ViewCommunity = ({
             link.attr("opacity", 0.8);
         }
 
-        node
-            .on("mousemove", (event, d) => {
-                tooltip
-                    .html(`
-                        <div style="font-weight:600; margin-bottom:4px;">
-                            ${d.label}
-                        </div>
-                        <div style="opacity:0.8; margin-bottom:4px;">
-                            ${d.profession}
-                        </div>
-                        <div style="font-size:11px; opacity:0.7;">
-                            Connections: 
-                            <strong>${d.connections ?? 0}</strong>
-                        </div>
-                    `)
-                    .style("opacity", 1);
+        node.on("mouseenter", (event, d) => {
+            tooltip
+                .html(`
+                    <div style="font-weight:600; font-size:13px; margin-bottom:6px;">
+                        ${d.label}
+                    </div>
+                    <div style="color:#6b7280; margin-bottom:8px;">
+                        ${d.profession ?? ""}
+                    </div>
+                    <div style="font-size:11px; margin-bottom:10px;">
+                        Connections: <strong>${d.connections ?? 0}</strong>
+                    </div>
+                    <button 
+                        id="profile-btn"
+                        style="
+                            width:100%;
+                            background:#10b981;
+                            color:white;
+                            border:none;
+                            padding:6px 8px;
+                            border-radius:8px;
+                            cursor:pointer;
+                            font-size:12px;
+                        "
+                    >
+                        View Profile →
+                    </button>
+                `)
+                .style("opacity", 1);
 
-                positionTooltip(event);
-                highlightConnections(d);
-            })
-            .on("mouseleave", () => {
-                tooltip.style("opacity", 0);
-                resetHighlight();
+            positionTooltip(event);
+            highlightConnections(d);
+
+            tooltip.select("#profile-btn").on("click", (e) => {
+                e.stopPropagation();
+                navigate(`/user/${d.id}`, {
+                    state: { name: d.label },
+                });
             });
+        });
+
+        node.on("mousemove", (event) => {
+            positionTooltip(event);
+        });
+
+        containerRef.current.addEventListener("mouseleave", () => {
+            tooltip.style("opacity", 0);
+            resetHighlight();
+        });
 
         simulation.on("tick", () => {
             link
@@ -206,7 +229,7 @@ const ViewCommunity = ({
             simulation.stop();
             tooltip.remove();
         };
-    }, [nodes, links, width, height]);
+    }, [nodes, links, width, height, navigate]);
 
     return (
         <div
@@ -235,8 +258,9 @@ const ViewCommunity = ({
 const Legend = ({ color, label, dashed }) => (
     <div className="flex items-center gap-2">
         <div
-            className={`w-5 h-[3px] ${color} ${dashed ? "border-t border-dashed border-current" : ""
-                }`}
+            className={`w-5 h-[3px] ${color} ${
+                dashed ? "border-t border-dashed border-current" : ""
+            }`}
         />
         <span>{label}</span>
     </div>

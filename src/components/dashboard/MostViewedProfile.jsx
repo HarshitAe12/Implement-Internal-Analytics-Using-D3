@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
+import { useNavigate } from "react-router-dom";
 
 const MostViewedProfile = ({
   data = [],
@@ -9,6 +10,7 @@ const MostViewedProfile = ({
   const svgRef = useRef(null);
   const containerRef = useRef(null);
   const [width, setWidth] = useState(0);
+  const navigate = useNavigate();
 
   // Responsive width
   useEffect(() => {
@@ -132,13 +134,29 @@ const MostViewedProfile = ({
           <div className="flex flex-col gap-3 text-sm flex-1 min-w-[200px]">
             {data.map((d, i) => (
               <div key={i} className="flex items-center gap-3">
+
                 <span
                   className="w-3 h-3 rounded-sm"
                   style={{ backgroundColor: d3.schemeTableau10[i % 10] }}
                 />
-                <span className="text-slate-700 truncate">
-                  {d.viewed_profile_firstname} {d.viewed_profile_lastname}
-                </span>
+
+                {/* Name + Arrow */}
+                <div className="flex items-center gap-2 text-slate-700 truncate">
+                  <span>
+                    {d.viewed_profile_firstname} {d.viewed_profile_lastname}
+                  </span>
+
+                  {/* Arrow Button */}
+                  <button
+                    onClick={() =>
+                      navigate(`/user/${d.viewed_profile_id}`)
+                    }
+                    className="text-blue-500 hover:text-blue-700 transition"
+                  >
+                    →
+                  </button>
+                </div>
+
                 <span className="ml-auto font-medium text-slate-900">
                   {d.view_count}
                 </span>

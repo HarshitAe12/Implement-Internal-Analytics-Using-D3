@@ -1,15 +1,17 @@
 import { useRef, useEffect, useState } from "react";
 import * as d3 from "d3";
+import { useNavigate } from "react-router-dom";
 
 const ViewConnectionGraph = ({
     nodes = [],
     links = [],
-    height = 560, // slightly reduced height
+    height = 560,
     title = "Connection Network",
 }) => {
     const svgRef = useRef(null);
     const containerRef = useRef(null);
     const [width, setWidth] = useState(0);
+    const navigate = useNavigate();
 
     /* ---------- Resize ---------- */
     useEffect(() => {
@@ -56,7 +58,7 @@ const ViewConnectionGraph = ({
             .append("marker")
             .attr("id", "arrow")
             .attr("viewBox", "0 -5 10 10")
-            .attr("refX", 18) // adjusted for smaller nodes
+            .attr("refX", 18)
             .attr("refY", 0)
             .attr("markerWidth", 5)
             .attr("markerHeight", 5)
@@ -75,7 +77,6 @@ const ViewConnectionGraph = ({
                 })
         );
 
-        /* ---------- Colors ---------- */
         const colorScale = d3.scaleOrdinal(d3.schemeTableau10);
 
         const linkColor = (type) => {
@@ -85,23 +86,21 @@ const ViewConnectionGraph = ({
             return "#cbd5e1";
         };
 
-        /* ---------- Compact Simulation ---------- */
         const simulation = d3
             .forceSimulation(simulationNodes)
             .force(
                 "link",
                 d3.forceLink(simulationLinks)
                     .id((d) => d.id)
-                    .distance(65) // reduced spacing
+                    .distance(65)
             )
-            .force("charge", d3.forceManyBody().strength(-110)) // less repulsion
+            .force("charge", d3.forceManyBody().strength(-110))
             .force("center", d3.forceCenter(width / 2, height / 2))
-            .force("collision", d3.forceCollide().radius(22)) // tighter collision
+            .force("collision", d3.forceCollide().radius(22))
             .force("x", d3.forceX(width / 2).strength(0.08))
             .force("y", d3.forceY(height / 2).strength(0.08))
             .alphaDecay(0.07);
 
-        /* ---------- Links ---------- */
         const link = g.append("g")
             .selectAll("line")
             .data(simulationLinks)
@@ -114,7 +113,6 @@ const ViewConnectionGraph = ({
             .attr("marker-end", "url(#arrow)")
             .attr("opacity", 0.85);
 
-        /* ---------- Nodes ---------- */
         const node = g.append("g")
             .selectAll("g")
             .data(simulationNodes)
@@ -137,14 +135,12 @@ const ViewConnectionGraph = ({
                     })
             );
 
-        // Smaller circles
         node.append("circle")
             .attr("r", 18)
             .attr("fill", (d) => colorScale(d.group))
             .attr("stroke", "#fff")
             .attr("stroke-width", 2);
 
-        // Smaller initials
         node.append("text")
             .text((d) =>
                 d.label
@@ -171,7 +167,7 @@ const ViewConnectionGraph = ({
             .style("font-size", "12px")
             .style("line-height", "1.4")
             .style("box-shadow", "0 10px 30px rgba(0,0,0,0.25)")
-            .style("pointer-events", "none")
+            .style("pointer-events", "auto") // changed
             .style("opacity", 0)
             .style("transition", "opacity 0.15s ease");
 
@@ -209,25 +205,41 @@ const ViewConnectionGraph = ({
 
         node.on("mousemove", (event, d) => {
             tooltip.html(`
-                <div style="font-weight:600; margin-bottom:4px;">
-                    ${d.label}
-                </div>
-                <div style="opacity:0.8; margin-bottom:4px;">
-                    ${d.profession}
-                </div>
-                <div style="font-size:11px; opacity:0.7;">
-                    Connections: <strong>${d.connections ?? 0}</strong>
+                <div style="display:flex; justify-content:space-between; align-items:start; gap:8px;">
+                    <div>
+                        <div style="font-weight:600; margin-bottom:4px;">
+                            ${d.label}
+                        </div>
+                        <div style="opacity:0.8; margin-bottom:4px;">
+                            ${d.profession ?? ""}
+                        </div>
+                        <div style="font-size:11px; opacity:0.7;">
+                            Connections: <strong>${d.connections ?? 0}</strong>
+                        </div>
+                    </div>
+
+                    <button id="redirect-btn"
+                        style="background:#3b82f6;color:white;border:none;padding:4px 8px;border-radius:6px;cursor:pointer;font-size:11px;">
+                        →
+                    </button>
                 </div>
             `).style("opacity", 1);
 
+            tooltip.select("#redirect-btn")
+                .on("click", (e) => {
+                    e.stopPropagation();
+                    navigate(`/user/${d.id}`);
+                });
+
             positionTooltip(event);
             highlightConnections(d);
-        }).on("mouseleave", () => {
+        });
+
+        containerRef.current.addEventListener("mouseleave", () => {
             tooltip.style("opacity", 0);
             resetHighlight();
         });
 
-        /* ---------- Tick ---------- */
         simulation.on("tick", () => {
             link
                 .attr("x1", (d) => d.source.x)
@@ -283,8 +295,7 @@ const ViewConnectionGraph = ({
 const Legend = ({ color, label, dashed }) => (
     <div className="flex items-center gap-2">
         <div
-            className={`w-5 h-[3px] ${color} ${dashed ? "border-t border-dashed border-current" : ""
-                }`}
+            className={`w-5 h-[3px] ${color} ${dashed ? "border-t border-dashed border-current" : ""}`}
         />
         <span>{label}</span>
     </div>

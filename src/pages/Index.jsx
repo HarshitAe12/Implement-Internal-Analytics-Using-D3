@@ -1,11 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  mockMetrics,
-  mockDailyLogins,
-  mockMonthlySearches,
-  mockFailedSearches
-} from "../data/mockData";
-import DateRangeFilter from "../components/dashboard/DateRangeFilter";
+import { useOutletContext } from "react-router-dom";
 import MetricCard from "../components/dashboard/MetricCard";
 import { fetchAllCommunity, fetchAllConnections, fetchAllProfilesViewCount, fetchCityAnalitics, fetchConnections, fetchEngagement, fetchMostSearchUsers, fetchMostViewedProfiles, fetchProfessionAnalytics, fetchSearchCount, fetchTopCity, fetchTopProfession, fetchTotalViews } from "../utils/api";
 import { showToast } from "@/utils/showToast";
@@ -18,9 +12,12 @@ import CityAnalytics from "@/components/dashboard/CityAnalytics";
 import { mapEngToMetricCard, mapSearchCountToMetricCard, mapTopCityToMetricCard, mapTopProfToMetricCard, mapTotalVieCountToMetricCard } from "@/utils/formatters";
 import ViewConnectionGraph from "@/components/dashboard/ViewConnectionGraph";
 import ViewCommunity from "@/components/dashboard/ViewCommunity";
+import DrillDownBarChart from "@/components/dashboard/DrillDownBarChart";
+import EngagementBubbles from "@/components/dashboard/EngagementBubles";
+import { mockPartnerEngagement } from "@/utils/data";
 
 const Index = () => {
-
+const { dateRange } = useOutletContext();
 
   const defaultRange = (() => {
     const end = new Date();
@@ -32,8 +29,6 @@ const Index = () => {
       end: end.toISOString().split("T")[0],
     };
   })();
-
-  const [dateRange, setDateRange] = useState(defaultRange);
 
 
   // CHARTS & GHARPS
@@ -376,50 +371,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-20 backdrop-blur-xl bg-background/80 border-b border-border">
-        <div className="max-w-360 mx-auto px-6 max-w-[1440px]">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-
-            {/* Left Branding */}
-            <div className="flex flex-col md:flex-row lg:flex-row items-center gap-4 min-w-0">
-              <div className="w-44 h-20 shrink-0 flex items-center justify-center">
-                <img
-                  src="https://proinsight.com/wp-content/uploads/2024/07/ProInsight-Logo-1-1-768x219.png"
-                  alt="ProInsight"
-                  className="w-full h-auto object-contain"
-                />
-              </div>
-
-              <div className="leading-tight min-w-0">
-                <h1 className="mb-1 text-sm text-center md:text-left  font-semibold tracking-tight text-foreground truncate">
-                  ProInsight Analytics
-                </h1>
-
-                <div className="flex items-center gap-2 text-xs">
-                  <span className="font-mono text-muted-foreground">
-                    Internal
-                  </span>
-                  <span className="text-muted-foreground">•</span>
-                  <span className="font-mono text-primary">
-                    Dev Data Lake
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Controls */}
-            <div className="flex items-center gap-3 w-full md:w-auto shrink-0 mb-2 md:mb-0">
-              <div className="rounded-lg border border-border bg-card/70 px-2 py-1 w-full sm:w-auto shadow-sm">
-                <DateRangeFilter
-                  onRangeChange={(start, end) => setDateRange({ start, end })}
-                />
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </header>
 
       <main className="max-w-[1440px] mx-auto px-6 py-6 space-y-8 ">
         {/* Metric Cards */}
@@ -484,6 +435,20 @@ const Index = () => {
             yLabel="Views"
           />
         )}
+
+
+
+        {/* Partner Engagement */}
+          <DrillDownBarChart
+            data={mockPartnerEngagement}
+            title="Partner Engagement Funnel"
+          />
+        {/* <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <EngagementBubbles
+            data={mockPartnerEngagement}
+            title="Engagement Bubbles"
+          />
+        </section> */}
         {/* Network Graph */}
         {
           connectionLoading ? (<Spinner />)
@@ -549,16 +514,7 @@ const Index = () => {
               links={community?.links}
           />
         }
-        {/* Footer */}
-        <footer className="border-t border-slate-200 pt-4 pb-8">
-          <div className="flex flex-col md:flex-row items-center justify-between text-xs font-mono text-slate-500">
-            <span>ProInsight Analytics · Internal Use Only</span>
-            <span>
-              Data range: {dateRange.start || "Last 30 days"}
-              {dateRange.end ? ` → ${dateRange.end}` : ""}
-            </span>
-          </div>
-        </footer>
+      
       </main>
 
     </div>

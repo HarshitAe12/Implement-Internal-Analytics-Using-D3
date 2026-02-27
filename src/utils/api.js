@@ -456,3 +456,160 @@ export async function fetchAllCommunity({
     throw error;
   }
 }
+
+
+// for specific user 
+export async function fetchTotalViewsPerUser({
+  start_date,
+  end_date,
+  user_id,
+} = {}) {
+  try {
+    const response = await fetch(
+      "https://api.proinsight.com/analytics/view_count",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          start_date,
+          end_date,
+          user_id, 
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Total Views API failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("[Total Views API Error]", error);
+    throw error;
+  }
+}
+
+export async function fetchSearchCountPerUser({
+  start_date,
+  end_date,
+   user_id
+} = {}) {
+  try {
+    const response = await fetch(
+      "https://api.proinsight.com/analytics/search_count",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          start_date,
+          end_date,
+           user_id
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Search Count API failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("[Search Count API Error]", error);
+    throw error;
+  }
+}
+
+export async function fetchEngagementPerUser({
+  start_date,
+  end_date,
+   user_id
+} = {}) {
+  try {
+    const response = await fetch(
+      "https://api.proinsight.com/analytics/total_engagements",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          start_date,
+          end_date,
+           user_id
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Engagement API failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("[Engagement API Error]", error);
+    throw error;
+  }
+}
+
+export async function fetchAllCommunityPerUser({
+  user_id
+} = {}) {
+  try {
+    const response = await fetch(
+      "https://api.proinsight.com/analytics/get_community_graph",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+           body: JSON.stringify({
+           user_id
+        })
+      }
+    );
+    if (!response.ok) {
+      throw new Error(`All Community data failed: ${response.status}`);
+    }
+    const data = await response.json();
+    console.log("data----", data)
+    return data;
+  } catch (error) {
+    console.error("[All Community data error]", error);
+    throw error;
+  }
+}
+
+export async function fetchUserDetails({
+  user_id
+} = {}) {
+  try {
+    const response = await fetch(
+      "https://api.proinsight.com/get_user_details",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+           body: JSON.stringify({
+           user_id
+        })
+      }
+    );
+    if (!response.ok) {
+      throw new Error(`User data failed: ${response.status}`);
+    }
+    const data = await response.json();
+    console.log("data----", data)
+    return data;
+  } catch (error) {
+    console.error("[User data error]", error);
+    throw error;
+  }
+}

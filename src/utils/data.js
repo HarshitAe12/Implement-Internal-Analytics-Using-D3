@@ -1,0 +1,181 @@
+export const mockGraphData = {
+  timeline: [
+    { date: "2025-01-01", views: 1200, searches: 340, engagements: 520 },
+    { date: "2025-01-08", views: 1450, searches: 380, engagements: 610 },
+    { date: "2025-01-15", views: 1320, searches: 420, engagements: 580 },
+    { date: "2025-01-22", views: 1680, searches: 460, engagements: 720 },
+    { date: "2025-01-29", views: 1520, searches: 510, engagements: 680 },
+    { date: "2025-02-05", views: 1890, searches: 540, engagements: 810 },
+    { date: "2025-02-12", views: 2100, searches: 580, engagements: 920 },
+    { date: "2025-02-19", views: 1950, searches: 620, engagements: 870 },
+    { date: "2025-02-26", views: 2340, searches: 670, engagements: 1050 },
+    { date: "2025-03-05", views: 2180, searches: 710, engagements: 980 },
+    { date: "2025-03-12", views: 2560, searches: 760, engagements: 1120 },
+    { date: "2025-03-19", views: 2890, searches: 820, engagements: 1280 },
+    { date: "2025-03-26", views: 2720, searches: 850, engagements: 1190 },
+    { date: "2025-04-02", views: 3100, searches: 910, engagements: 1350 },
+    { date: "2025-04-09", views: 3340, searches: 960, engagements: 1480 },
+    { date: "2025-04-16", views: 3050, searches: 1020, engagements: 1390 },
+  ],
+};
+
+// Mock data matching all 11 analytics API endpoints
+
+export const mockMostViewedProfiles = {
+  most_viewed_profiles: [
+    { user_id: "u_001", name: "Arjun Mehta", profession: "Product Designer", views: 4820 },
+    { user_id: "u_002", name: "Priya Sharma", profession: "Full Stack Dev", views: 3910 },
+    { user_id: "u_003", name: "Rahul Verma", profession: "Data Scientist", views: 3540 },
+    { user_id: "u_004", name: "Sneha Patel", profession: "UX Researcher", views: 3120 },
+    { user_id: "u_005", name: "Vikram Singh", profession: "DevOps Engineer", views: 2870 },
+    { user_id: "u_006", name: "Ananya Gupta", profession: "Marketing Lead", views: 2650 },
+    { user_id: "u_007", name: "Karan Joshi", profession: "iOS Developer", views: 2340 },
+    { user_id: "u_008", name: "Meera Nair", profession: "AI Engineer", views: 2180 },
+    { user_id: "u_009", name: "Rohan Das", profession: "Backend Dev", views: 1920 },
+    { user_id: "u_010", name: "Ishita Roy", profession: "Product Manager", views: 1750 },
+  ],
+};
+
+export const mockMostSearchedUsers = {
+  most_searched_users: [
+    { user_id: "u_003", name: "Rahul Verma", searches: 892 },
+    { user_id: "u_001", name: "Arjun Mehta", searches: 756 },
+    { user_id: "u_008", name: "Meera Nair", searches: 621 },
+    { user_id: "u_002", name: "Priya Sharma", searches: 580 },
+    { user_id: "u_005", name: "Vikram Singh", searches: 534 },
+    { user_id: "u_004", name: "Sneha Patel", searches: 478 },
+    { user_id: "u_010", name: "Ishita Roy", searches: 412 },
+    { user_id: "u_006", name: "Ananya Gupta", searches: 389 },
+    { user_id: "u_009", name: "Rohan Das", searches: 345 },
+    { user_id: "u_007", name: "Karan Joshi", searches: 298 },
+  ],
+};
+
+export const mockProfessionAnalytics = {
+  professions: [
+    { profession: "Software Engineer", count: 1840 },
+    { profession: "Product Designer", count: 1320 },
+    { profession: "Data Scientist", count: 980 },
+    { profession: "Product Manager", count: 870 },
+    { profession: "DevOps Engineer", count: 640 },
+    { profession: "Marketing", count: 520 },
+    { profession: "UX Researcher", count: 410 },
+    { profession: "AI/ML Engineer", count: 380 },
+    { profession: "iOS Developer", count: 290 },
+    { profession: "Content Writer", count: 210 },
+    { profession: "HR Manager", count: 180 },
+    { profession: "Sales Lead", count: 150 },
+  ],
+};
+
+export const mockSearchCount = { total_searches: 24680 };
+export const mockViewCount = { total_views: 87420 };
+export const mockTotalEngagements = { total_engagements: 142350, growth: 12.4 };
+
+export const mockSearchQueries = {
+  queries: [
+    { query: "react developer", count: 342 },
+    { query: "product designer mumbai", count: 298 },
+    { query: "data scientist", count: 276 },
+    { query: "full stack", count: 241 },
+    { query: "AI engineer", count: 218 },
+    { query: "UX researcher", count: 195 },
+    { query: "devops", count: 172 },
+    { query: "marketing manager", count: 156 },
+    { query: "backend developer", count: 143 },
+    { query: "product manager", count: 132 },
+    { query: "mobile developer", count: 118 },
+    { query: "cloud architect", count: 105 },
+    { query: "machine learning", count: 98 },
+    { query: "frontend react", count: 87 },
+    { query: "startup founder", count: 76 },
+  ],
+};
+
+export const mockCommunityGraph = {
+  nodes: [
+    { id: "u_001", name: "Arjun Mehta", group: "design" },
+    { id: "u_002", name: "Priya Sharma", group: "engineering" },
+    { id: "u_003", name: "Rahul Verma", group: "data" },
+    { id: "u_004", name: "Sneha Patel", group: "design" },
+    { id: "u_005", name: "Vikram Singh", group: "engineering" },
+    { id: "u_006", name: "Ananya Gupta", group: "marketing" },
+    { id: "u_007", name: "Karan Joshi", group: "engineering" },
+    { id: "u_008", name: "Meera Nair", group: "data" },
+    { id: "u_009", name: "Rohan Das", group: "engineering" },
+    { id: "u_010", name: "Ishita Roy", group: "product" },
+    { id: "u_011", name: "Aditya Kumar", group: "design" },
+    { id: "u_012", name: "Neha Mishra", group: "marketing" },
+    { id: "u_013", name: "Sanjay Rao", group: "data" },
+    { id: "u_014", name: "Kavita Iyer", group: "product" },
+    { id: "u_015", name: "Amit Tiwari", group: "engineering" },
+  ],
+  links: [
+    { source: "u_001", target: "u_004", strength: 8 },
+    { source: "u_001", target: "u_010", strength: 6 },
+    { source: "u_002", target: "u_005", strength: 9 },
+    { source: "u_002", target: "u_007", strength: 7 },
+    { source: "u_002", target: "u_009", strength: 5 },
+    { source: "u_003", target: "u_008", strength: 8 },
+    { source: "u_003", target: "u_013", strength: 6 },
+    { source: "u_004", target: "u_011", strength: 7 },
+    { source: "u_005", target: "u_015", strength: 6 },
+    { source: "u_006", target: "u_012", strength: 9 },
+    { source: "u_006", target: "u_010", strength: 4 },
+    { source: "u_007", target: "u_009", strength: 5 },
+    { source: "u_008", target: "u_013", strength: 7 },
+    { source: "u_010", target: "u_014", strength: 8 },
+    { source: "u_011", target: "u_004", strength: 6 },
+    { source: "u_012", target: "u_014", strength: 3 },
+    { source: "u_001", target: "u_011", strength: 5 },
+    { source: "u_003", target: "u_005", strength: 4 },
+    { source: "u_009", target: "u_015", strength: 6 },
+  ],
+};
+export const mockPartnerEngagement = [
+  { name: "HomeServe USA",  appScans: 342, accountsCreated: 187, searches: 640 },
+  { name: "Stanley Martin",  appScans: 298, accountsCreated: 156, searches: 880 },
+  { name: "Toll Brothers",  appScans: 264, accountsCreated: 142, searches: 670 },
+  { name: "Bechtel Corp",  appScans: 231, accountsCreated: 118, searches: 720 },
+  { name: "Roto-Rooter",  appScans: 198, accountsCreated: 97, searches: 610 },
+  { name: "CertaPro",  appScans: 176, accountsCreated: 84, searches: 540 },
+  { name: "TruGreen",  appScans: 152, accountsCreated: 72, searches: 460 },
+  { name: "SunPower",  appScans: 134, accountsCreated: 61, searches: 380 },
+];
+export const dummyData = [
+  { professional: "John Plumber", accounts: 8 },
+  { professional: "Sarah Lender", accounts: 5 },
+  { professional: "Michael Realtor", accounts: 12 },
+  { professional: "Emily HVAC", accounts: 2 },
+  { professional: "David Electrician", accounts: 7 },
+  { professional: "Laura Painter", accounts: 4 },
+  { professional: "James Carpenter", accounts: 9 },
+  { professional: "Olivia Landscaper", accounts: 3 },
+  { professional: "Daniel Roofer", accounts: 6 },
+  { professional: "Sophia Plumber", accounts: 10 },
+  { professional: "Matthew Lender", accounts: 5 },
+  { professional: "Ava Realtor", accounts: 11 },
+  { professional: "Ethan HVAC", accounts: 4 },
+  { professional: "Mia Electrician", accounts: 6 },
+  { professional: "Alexander Painter", accounts: 7 },
+  { professional: "Isabella Carpenter", accounts: 8 },
+  { professional: "Benjamin Landscaper", accounts: 2 },
+  { professional: "Charlotte Roofer", accounts: 9 },
+  { professional: "William Plumber", accounts: 3 },
+  { professional: "Amelia Lender", accounts: 5 },
+  { professional: "James Realtor", accounts: 12 },
+  { professional: "Harper HVAC", accounts: 4 },
+  { professional: "Lucas Electrician", accounts: 6 },
+  { professional: "Evelyn Painter", accounts: 5 },
+  { professional: "Henry Carpenter", accounts: 7 },
+  { professional: "Abigail Landscaper", accounts: 3 },
+  { professional: "Owen Roofer", accounts: 6 },
+  { professional: "Ella Plumber", accounts: 8 },
+  { professional: "Jack Lender", accounts: 4 },
+  { professional: "Lily Realtor", accounts: 10 },
+  { professional: "Sebastian HVAC", accounts: 2 },
+  { professional: "Chloe Electrician", accounts: 5 },
+  { professional: "Nathan Painter", accounts: 7 },
+  { professional: "Sofia Carpenter", accounts: 6 },
+  { professional: "Logan Landscaper", accounts: 3 }
+];

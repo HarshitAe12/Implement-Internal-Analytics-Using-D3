@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState } from "react";
 import * as d3 from "d3";
+import { useNavigate } from "react-router-dom";
 
 const D3NetworkGraph = ({
     nodes = [],
@@ -10,13 +11,15 @@ const D3NetworkGraph = ({
     const svgRef = useRef(null);
     const containerRef = useRef(null);
     const [dimensions, setDimensions] = useState({ width: 0, height });
+
+    const navigate = useNavigate();
     const [tooltip, setTooltip] = useState({
         show: false,
         x: 0,
         y: 0,
-        content: "",
+        node: null,
+        connections: [],
     });
-
     /* ---------------- Resize Observer ---------------- */
     useEffect(() => {
         const obs = new ResizeObserver((entries) => {
@@ -106,11 +109,15 @@ const D3NetworkGraph = ({
 
         /* ----------- Zoom ----------- */
         svg.call(
-            d3.zoom().scaleExtent([0.4, 3]).on("zoom", (event) => {
-                g.attr("transform", event.transform);
-            })
+            d3.zoom()
+                .scaleExtent([0.4, 3])
+                .filter((event) => {
+                    return !event.target.closest(".tooltip-box");
+                })
+                .on("zoom", (event) => {
+                    g.attr("transform", event.transform);
+                })
         );
-
         /* ----------- Links ----------- */
         const link = g
             .append("g")
@@ -225,40 +232,10 @@ const D3NetworkGraph = ({
                     show: true,
                     x: event.clientX - rect.left,
                     y: event.clientY - rect.top - 12,
-                    content: `
-      <div style="font-weight:600;margin-bottom:4px">
-        ${d.label}
-      </div>
-      <div style="opacity:.7;margin-bottom:4px">
-        ${d.connections || 0} Views
-      </div>
-      ${connectedNodes.length > 0
-                            ? `<div style="font-size:11px;color:#555">
-              <strong>Connected to:</strong><br/>
-              ${topConnections}${remainingCount}
-            </div>`
-                            : ""
-                        }
-    `,
+                    node: d,
+                    connections: connectedNodes,
                 });
             })
-            .on("mouseout", (event) => {
-                node.select("circle").attr("opacity", 1);
-                link.attr("stroke-opacity", 0.5);
-
-                d3.select(event.currentTarget)
-                    .select("circle")
-                    .transition()
-                    .duration(150)
-                    .attr("stroke-width", 1.5);
-
-                setTooltip({
-                    show: false,
-                    x: 0,
-                    y: 0,
-                    content: "",
-                });
-            });
 
         /* ----------- Tick ----------- */
         simulation.on("tick", () => {
@@ -281,6 +258,15 @@ const D3NetworkGraph = ({
     return (
         <div
             ref={containerRef}
+            onMouseLeave={() => {
+                setTooltip({
+                    show: false,
+                    x: 0,
+                    y: 0,
+                    node: null,
+                    connections: [],
+                });
+            }}
             className="bg-card border border-border rounded-xl p-4 relative"
         >
             <h3 className="text-sm font-medium text-muted-foreground mb-3 font-mono tracking-wide uppercase">
@@ -297,27 +283,59 @@ const D3NetworkGraph = ({
                 height={height}
             />
 
-            {tooltip.show && (
+            {tooltip.show && tooltip.node && (
                 <div
+                    className="tooltip-box"
                     style={{
                         position: "absolute",
                         left: tooltip.x,
                         top: tooltip.y,
                         transform: "translate(-50%, -100%)",
-                        pointerEvents: "none",
                         background: "white",
                         color: "black",
-                        padding: "8px 10px",
-                        borderRadius: "8px",
+                        padding: "10px 12px",
+                        borderRadius: "10px",
                         fontSize: "12px",
-                        boxShadow:
-                            "0 8px 24px rgba(0,0,0,0.25)",
-                        maxWidth: "220px",
+                        boxShadow: "0 8px 24px rgba(0,0,0,0.25)",
+                        maxWidth: "240px",
+                        zIndex: 50,
+                        pointerEvents: "auto",
                     }}
-                    dangerouslySetInnerHTML={{
-                        __html: tooltip.content,
-                    }}
-                />
+                >
+                    <div className="flex justify-between items-start gap-2">
+                        <div>
+                            <div className="font-semibold mb-1">
+                                {tooltip.node.label}
+                            </div>
+
+                            <div className="opacity-70 mb-2">
+                                {tooltip.node.connections || 0} Views
+                            </div>
+                        </div>
+
+                        {/* 🔥 Redirect Arrow */}
+                        <button
+                            onClick={() => navigate(`/user/${tooltip.node.id}`)}
+                            className="text-blue-500 hover:text-blue-700 text-sm"
+                        >
+                            →
+                        </button>
+                    </div>
+
+                    {tooltip.connections.length > 0 && (
+                        <div className="text-xs text-gray-600 mt-1">
+                            <strong>Connected to:</strong>
+                            <div className="mt-1">
+                                {tooltip.connections
+                                    .slice(0, 3)
+                                    .map((n) => n.label)
+                                    .join(", ")}
+                                {tooltip.connections.length > 3 &&
+                                    ` +${tooltip.connections.length - 3} more`}
+                            </div>
+                        </div>
+                    )}
+                </div>
             )}
         </div>
     );
