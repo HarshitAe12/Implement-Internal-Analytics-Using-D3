@@ -1,4 +1,4 @@
-const API = "https://api.proinsight.com";
+const API = import.meta.env.VITE_API_URL;
 
 async function refreshAccessToken() {
   const refresh = localStorage.getItem("refresh_token");
