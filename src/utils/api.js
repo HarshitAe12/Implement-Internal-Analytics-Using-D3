@@ -619,9 +619,6 @@ export async function fetchAllCommunityPerUser({
       "https://api.proinsight.com/analytics/get_community_graph",
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({
           user_id
         })

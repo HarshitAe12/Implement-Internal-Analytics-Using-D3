@@ -1,13 +1,14 @@
 import { Outlet } from "react-router-dom";
 import { useState } from "react";
 import DateRangeFilter from "@/components/dashboard/DateRangeFilter";
+import { LogOut } from "lucide-react";
 
 const MainLayout = () => {
     const handleLogout = () => {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    window.location.href="/"
-};
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        window.location.href = "/"
+    };
     const defaultRange = (() => {
         const end = new Date();
         const start = new Date();
@@ -71,8 +72,9 @@ const MainLayout = () => {
                             </div>
                             <button
                                 onClick={handleLogout}
-                                className="px-4 py-2 text-sm font-medium rounded-lg bg-red-500 text-white hover:bg-red-600 transition"
+                                className="px-4 py-2 text-sm font-medium rounded-lg bg-[#a78535] text-white hover:bg-red-600 transition flex items-center gap-2"
                             >
+                                <LogOut size={18} />
                                 Logout
                             </button>
                         </div>

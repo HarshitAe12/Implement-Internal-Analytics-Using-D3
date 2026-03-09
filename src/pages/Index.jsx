@@ -17,7 +17,6 @@ import { mockPartnerEngagement } from "@/utils/data";
 
 const Index = () => {
   const { dateRange } = useOutletContext();
-// console.log("localstorage",localStorage)
   const defaultRange = (() => {
     const end = new Date();
     const start = new Date();

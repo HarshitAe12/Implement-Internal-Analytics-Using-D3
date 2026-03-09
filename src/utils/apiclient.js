@@ -27,12 +27,13 @@ async function refreshAccessToken() {
 
 export async function apiFetch(url, options = {}, retry = true) {
   let access = localStorage.getItem("access_token");
-
   const headers = {
-    "Content-Type": "application/json",
     ...(options.headers || {}),
   };
 
+  if (!headers["Content-Type"]) {
+    headers["Content-Type"] = "application/json";
+  }
   if (access) {
     headers["Authorization"] = `Bearer ${access}`;
   }
@@ -44,7 +45,7 @@ export async function apiFetch(url, options = {}, retry = true) {
 
   /* TOKEN EXPIRED */
 
-  if (res.status === 401 && retry) {
+  if (res.status === 401 && retry===true) {
     const newAccess = await refreshAccessToken();
 
     if (!newAccess) {

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 import { useNavigate, useParams } from "react-router-dom";
+import { apiFetch } from "@/utils/apiclient";
 
 const colors = [
   "#f87171","#fb923c","#facc15","#4ade80","#38bdf8",
@@ -9,11 +10,10 @@ const colors = [
 
 export async function fetchAllCommunityPerUser({ user_id } = {}) {
   try {
-    const response = await fetch(
+    const response = await apiFetch(
       "https://api.proinsight.com/analytics/get_community_graph",
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ user_id }),
       }
     );
