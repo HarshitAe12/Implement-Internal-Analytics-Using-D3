@@ -6,7 +6,9 @@ import {
   fetchSearchCountPerUser,
   fetchEngagementPerUser,
   fetchAllCommunityPerUser,
-  fetchUserDetails
+  fetchUserDetails,
+  fetchViewedProfile,
+  fetchSearchedUser
 } from '@/utils/api';
 import {
   dummyData,
@@ -23,7 +25,7 @@ import {
 } from '@/utils/formatters';
 import { showToast } from '@/utils/showToast';
 import React, { useEffect, useState } from 'react';
-import {  useOutletContext, useParams } from 'react-router-dom';
+import { useOutletContext, useParams } from 'react-router-dom';
 import { BriefcaseBusiness, Mail, MapPin } from 'lucide-react';
 import ProfileBarChart from '@/components/dashboard/ProfileBarChart';
 import SearchedUsersRadial from '@/components/dashboard/SearchedUserRadial';
@@ -33,13 +35,15 @@ import CommunityGraph from '@/components/dashboard/CommunityGraph';
 import ConciergeBarChart from '@/components/dashboard/ConciergeBarChart';
 
 const User = () => {
-window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+  window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
   const { dateRange } = useOutletContext();
   const { id } = useParams();
   const [totalViews, setTotalViews] = useState(null);
   const [searchCount, setSearchCount] = useState(null);
   const [engagement, setEngagement] = useState(null);
-  const [userDetails, setUserDetails] = useState([])
+  const [userDetails, setUserDetails] = useState([]);
+  const [viewedProfile, setViewedProfile] = useState([]);
+  const [searchedUser, setSearchedUser] = useState([]);
 
   const [community, setCommunity] = useState({
     nodes: [],
@@ -143,19 +147,52 @@ window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
 
   useEffect(() => {
     fetchUsers()
+    fetchViewProfile()
+    fetchSearches()
   }, [id])
+
   const fetchUsers = async () => {
     try {
-
       const data = await fetchUserDetails({ user_id: id });
-
       setUserDetails(data)
-      console.log("user data", data)
 
     } catch (err) {
       console.log("User  Error ->", err?.message);
       showToast.error("Error while fetching user data");
       setUserDetails([]);
+    }
+  };
+
+  const fetchViewProfile = async () => {
+    try {
+      const data = await fetchViewedProfile({ user_id: id });
+      const mapped = (data || [])?.map((item) => ({
+        name: `${item?.viewed_profile_firstname} ${item?.viewed_profile_lastname}`,
+        views: item?.view_count || item?.views || 1
+      }));
+
+      setViewedProfile(mapped);
+
+    } catch (err) {
+      console.log("User Error ->", err?.message);
+      showToast.error("Error while fetching user data");
+      setViewedProfile([]);
+    }
+  };
+
+  const fetchSearches = async () => {
+    try {
+      const data = await fetchSearchedUser({ user_id: id });
+      const mapped = (data || [])?.map((item) => ({
+        name: item?.criteria,
+        searches: item?.search_count
+      }));
+      setSearchedUser(mapped);
+
+    } catch (err) {
+      console.log("User  Error ->", err?.message);
+      showToast.error("Error while fetching user data");
+      setSearchedUser([]);
     }
   };
 
@@ -183,7 +220,7 @@ window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
           </a>
 
           {/* Profile Section */}
-          <div className="flex items-center gap-4 shrink-0">
+          <div className="flex items-start md:items-center flex-col md:flex-row gap-4 shrink-0">
             <Avatar className="h-40 w-40 rounded-full border-2 border-primary/30 overflow-hidden">
               <img
                 src={userDetails?.profile?.preview?.avatar}
@@ -198,9 +235,9 @@ window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
             <div className="flex flex-col min-w-max">
               {
                 userDetails &&
-              <h1 className="text-2xl font-bold tracking-tight text-left whitespace-nowrap">
-                {userDetails?.profile?.fullname}
-              </h1>
+                <h1 className="text-2xl font-bold tracking-tight text-left whitespace-nowrap">
+                  {userDetails?.profile?.fullname}
+                </h1>
               }
               {
                 userDetails &&
@@ -209,8 +246,8 @@ window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
                     <BriefcaseBusiness size={14} /> {userDetails?.profile?.profession}
                   </span>
                   <span className="flex items-center gap-1 whitespace-nowrap">
-                  <Mail size={14} /> {userDetails?.profile?.email}
-                </span>
+                    <Mail size={14} /> {userDetails?.profile?.email}
+                  </span>
                 </div>
               }
             </div>
@@ -242,25 +279,23 @@ window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
         </div>
       </header>
 
-      <div className="mt-12 overflow-x-auto">
+      {/* <div className="mt-12 overflow-x-auto">
         <div className="min-w-[700px]">
           <TimeLine data={mockGraphData.timeline} title="Activity Over Time" />
         </div>
-      </div>
+      </div> */}
 
-       <div className="mt-12 overflow-x-auto">
+      <div className="mt-12 overflow-x-auto">
         <div className="min-w-[700px]">
           <ConciergeBarChart data={dummyData} title="App Downloads by Concierge Member" />
         </div>
       </div>
 
-      
-
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 my-8">
         <div className="w-full overflow-x-auto">
           <div className="min-w-[600px]">
             <ProfileBarChart
-              data={mockMostViewedProfiles.most_viewed_profiles}
+              data={viewedProfile}
               title="Most Viewed Profiles"
             />
           </div>
@@ -269,14 +304,14 @@ window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
         <div className="w-full overflow-x-auto">
           <div className="min-w-[600px]">
             <SearchedUsersRadial
-              data={mockMostSearchedUsers.most_searched_users}
-              title="Most Searched Users"
+              data={searchedUser}
+              title="Most Searched Data"
             />
           </div>
         </div>
       </section>
 
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      {/* <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <div className="w-full overflow-x-auto">
           <div className="min-w-[600px]">
             <DonutChart
@@ -294,7 +329,7 @@ window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
             />
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Community Graph */}
       <div className="overflow-x-auto">

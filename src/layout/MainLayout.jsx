@@ -3,7 +3,11 @@ import { useState } from "react";
 import DateRangeFilter from "@/components/dashboard/DateRangeFilter";
 
 const MainLayout = () => {
-
+    const handleLogout = () => {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    window.location.href="/"
+};
     const defaultRange = (() => {
         const end = new Date();
         const start = new Date();
@@ -57,7 +61,7 @@ const MainLayout = () => {
                         </div>
 
                         {/* Right Controls */}
-                        <div className="flex items-center gap-3 w-full md:w-auto shrink-0">
+                        <div className="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto shrink-0">
                             <div className="rounded-lg border border-border bg-card/70 px-2 py-1 w-full sm:w-auto shadow-sm">
                                 <DateRangeFilter
                                     onRangeChange={(start, end) =>
@@ -65,6 +69,12 @@ const MainLayout = () => {
                                     }
                                 />
                             </div>
+                            <button
+                                onClick={handleLogout}
+                                className="px-4 py-2 text-sm font-medium rounded-lg bg-red-500 text-white hover:bg-red-600 transition"
+                            >
+                                Logout
+                            </button>
                         </div>
 
                     </div>
@@ -83,7 +93,7 @@ const MainLayout = () => {
                 </div>
             </div>
 
-                                    
+
 
             {/* Pass dateRange to all pages */}
             <main className="max-w-[1440px] mx-auto px-6 py-6">

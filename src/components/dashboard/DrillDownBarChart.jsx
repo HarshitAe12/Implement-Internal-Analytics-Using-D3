@@ -10,6 +10,17 @@ const stages = [
 const DrillDownBarChart = ({ data, title }) => {
   const svgRef = useRef(null);
   const [activeStage, setActiveStage] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  /* Detect screen size */
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640);
+    check();
+    window.addEventListener("resize", check);
+
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   useEffect(() => {
     if (!data?.length || !svgRef.current) return;
@@ -21,10 +32,16 @@ const DrillDownBarChart = ({ data, title }) => {
       ? stages.filter((s) => s.key === activeStage)
       : stages;
 
-    const margin = { top: 24, right: 80, bottom: 16, left: 12 };
+    const margin = isMobile
+      ? { top: 20, right: 10, bottom: 10, left: 90 }
+      : { top: 24, right: 80, bottom: 16, left: 12 };
+
     const width = svgRef.current.clientWidth || 500;
-    const rowH = 52;
+
+    const rowH = isMobile ? 42 : 52;
+
     const height = data.length * rowH + margin.top + margin.bottom;
+
     svgRef.current.setAttribute("height", String(height));
 
     const innerW = width - margin.left - margin.right;
@@ -53,7 +70,8 @@ const DrillDownBarChart = ({ data, title }) => {
 
     const g = svg.append("g").attr("transform", `translate(${margin.left},0)`);
 
-    // Grid
+    /* Grid */
+
     g.selectAll(".grid")
       .data(x.ticks(4))
       .enter()
@@ -65,7 +83,8 @@ const DrillDownBarChart = ({ data, title }) => {
       .attr("stroke", "hsl(215, 20%, 18%)")
       .attr("stroke-dasharray", "2,3");
 
-    // Tick labels
+    /* Tick labels */
+
     g.selectAll(".tick-label")
       .data(x.ticks(4))
       .enter()
@@ -74,7 +93,7 @@ const DrillDownBarChart = ({ data, title }) => {
       .attr("y", margin.top - 10)
       .attr("text-anchor", "middle")
       .attr("fill", "hsl(215, 20%, 45%)")
-      .attr("font-size", 9)
+      .attr("font-size", isMobile ? 8 : 9)
       .text((d) => d3.format("~s")(d));
 
     const rows = g
@@ -95,10 +114,10 @@ const DrillDownBarChart = ({ data, title }) => {
           .attr("height", y1.bandwidth())
           .attr("rx", 4)
           .attr("fill", s.color)
-          .attr("opacity", 0.8)
+          .attr("opacity", 0.85)
           .transition()
           .duration(500)
-          .delay(i * 100)
+          .delay(isMobile ? i * 60 : i * 100)
           .attr("width", x(d[s.key]));
 
         row.append("text")
@@ -106,7 +125,7 @@ const DrillDownBarChart = ({ data, title }) => {
           .attr("y", y1(s.key) + y1.bandwidth() / 2)
           .attr("dy", "0.35em")
           .attr("fill", s.color)
-          .attr("font-size", 10)
+          .attr("font-size", isMobile ? 9 : 10)
           .attr("font-weight", 600)
           .attr("opacity", 0)
           .text(d[s.key].toLocaleString())
@@ -117,34 +136,39 @@ const DrillDownBarChart = ({ data, title }) => {
       });
     });
 
-    // Partner labels
+    /* Partner labels */
+
     data.forEach((d) => {
       const yPos = y0(d.name) + y0.bandwidth() / 2;
 
       svg.append("text")
-        .attr("x", width - 4)
+        .attr("x", isMobile ? 4 : width - 4)
         .attr("y", yPos)
         .attr("dy", "0.35em")
-        .attr("text-anchor", "end")
-        .attr("fill", "hsl(210, 40%, 88%)")
-        .attr("font-size", 11)
+        .attr("text-anchor", isMobile ? "start" : "end")
+        .attr("fill", "gray")
+        .attr("font-size", isMobile ? 9 : 11)
         .attr("font-weight", 600)
         .text(
-         
-            (d.name.length > 14
-              ? d.name.slice(0, 13) + "…"
-              : d.name)
+          d.name.length > (isMobile ? 10 : 14)
+            ? d.name.slice(0, isMobile ? 9 : 13) + "…"
+            : d.name
         );
     });
 
-  }, [data, activeStage]);
+  }, [data, activeStage, isMobile]);
 
   return (
     <div className="rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm p-5">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-medium text-muted-foreground mb-3 font-mono tracking-wide uppercase">{title}</h3>
 
-        <div className="flex gap-1">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+
+        <h3 className="text-sm font-medium text-muted-foreground font-mono tracking-wide uppercase">
+          {title}
+        </h3>
+
+        <div className="flex flex-wrap gap-1">
+
           <button
             onClick={() => setActiveStage(null)}
             className={`px-2 py-0.5 rounded text-[10px] font-medium transition-colors ${
@@ -171,25 +195,36 @@ const DrillDownBarChart = ({ data, title }) => {
               {s.label}
             </button>
           ))}
+
         </div>
       </div>
 
-      <div className="flex gap-3 mb-2">
+      <div className="flex flex-wrap gap-3 mb-2">
+
         {stages.map((s) => (
           <div
             key={s.key}
             className="flex items-center gap-1.5 text-[10px] text-muted-foreground"
           >
             <span
-              className="w-2 h-2 rounded-sm text-muted-foreground"
-              // style={{ background: s.color }}
+              className="w-2 h-2 rounded-sm"
+              style={{ background: s.color }}
             />
             {s.label}
           </div>
         ))}
+
       </div>
 
-      <svg ref={svgRef} width="100%" height="440" />
+   <div className="w-full overflow-x-auto">
+  <svg
+    ref={svgRef}
+    className="min-w-[600px]"
+    width="100%"
+    height={isMobile ? 320 : 440}
+  />
+</div>
+
     </div>
   );
 };

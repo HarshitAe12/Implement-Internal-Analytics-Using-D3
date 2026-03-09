@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import MetricCard from "../components/dashboard/MetricCard";
-import { fetchAllCommunity, fetchAllConnections, fetchAllProfilesViewCount, fetchCityAnalitics, fetchConnections, fetchEngagement, fetchMostSearchUsers, fetchMostViewedProfiles, fetchProfessionAnalytics, fetchSearchCount, fetchTopCity, fetchTopProfession, fetchTotalViews } from "../utils/api";
+import { fetchAllCommunity, fetchAllConnections, fetchCityAnalitics, fetchConnections, fetchEngagement, fetchMostSearchUsers, fetchMostViewedProfiles, fetchProfessionAnalytics, fetchSearchCount, fetchTopCity, fetchTopProfession, fetchTotalViews } from "../utils/api";
 import { showToast } from "@/utils/showToast";
 import MostViewedProfile from "@/components/dashboard/MostViewedProfile";
 import MostSearchUser from "@/components/dashboard/MostSearchUser";
@@ -13,12 +13,11 @@ import { mapEngToMetricCard, mapSearchCountToMetricCard, mapTopCityToMetricCard,
 import ViewConnectionGraph from "@/components/dashboard/ViewConnectionGraph";
 import ViewCommunity from "@/components/dashboard/ViewCommunity";
 import DrillDownBarChart from "@/components/dashboard/DrillDownBarChart";
-import EngagementBubbles from "@/components/dashboard/EngagementBubles";
 import { mockPartnerEngagement } from "@/utils/data";
 
 const Index = () => {
-const { dateRange } = useOutletContext();
-
+  const { dateRange } = useOutletContext();
+// console.log("localstorage",localStorage)
   const defaultRange = (() => {
     const end = new Date();
     const start = new Date();
@@ -54,11 +53,11 @@ const { dateRange } = useOutletContext();
 
   const [allConnectionLoading, setAllConnectionLoading] = useState(false)
 
-  const [community,setCommunity]=useState({
+  const [community, setCommunity] = useState({
     nodes: [],
     links: []
   })
-  const [communityLoading,setCommunityLoading]=useState(false)
+  const [communityLoading, setCommunityLoading] = useState(false)
 
   // HEADER CARDS 
 
@@ -179,7 +178,7 @@ const { dateRange } = useOutletContext();
     }
   };
 
- const cityAnalytics = async (start_date, end_date) => {
+  const cityAnalytics = async (start_date, end_date) => {
     setAnalyticsLoading(true);
     try {
       const data = await fetchCityAnalitics(start_date, end_date);
@@ -340,7 +339,7 @@ const { dateRange } = useOutletContext();
     }
   };
 
-    const fetchCommunity = async (start_date, end_date) => {
+  const fetchCommunity = async (start_date, end_date) => {
     try {
       setCommunityLoading(true);
 
@@ -349,16 +348,15 @@ const { dateRange } = useOutletContext();
       const filteredLinks = data?.links?.filter(
         link => link.source && link.target && link.source !== link.target
       );
-       setCommunity({
+      setCommunity({
         nodes: data?.nodes || [],
         links: filteredLinks || []
       });
-      console.log("community data",data)
 
     } catch (err) {
       console.log("fetch all community Error ->", err?.message);
       showToast.error("Error while fetch all community API");
-        setCommunity({
+      setCommunity({
         nodes: [],
         links: []
       });
@@ -414,14 +412,6 @@ const { dateRange } = useOutletContext();
           />
 
 
-          {/* <MetricCard
-            title="Failed Searches"
-            value={mockMetrics.failedSearches}
-            delta={mockMetrics.failedSearchesDelta}
-            sparklineData={mockFailedSearches}
-            sparklineColor="#ef4444" // red
-          /> */}
-
         </div>
 
         {/* Most Viewed */}
@@ -439,10 +429,10 @@ const { dateRange } = useOutletContext();
 
 
         {/* Partner Engagement */}
-          <DrillDownBarChart
-            data={mockPartnerEngagement}
-            title="Partner Engagement Funnel"
-          />
+        <DrillDownBarChart
+          data={mockPartnerEngagement}
+          title="Partner Engagement Funnel"
+        />
         {/* <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <EngagementBubbles
             data={mockPartnerEngagement}
@@ -508,13 +498,13 @@ const { dateRange } = useOutletContext();
 
         {
           communityLoading ? <Spinner />
-          :
-          <ViewCommunity 
-            nodes={community?.nodes}
+            :
+            <ViewCommunity
+              nodes={community?.nodes}
               links={community?.links}
-          />
+            />
         }
-      
+
       </main>
 
     </div>

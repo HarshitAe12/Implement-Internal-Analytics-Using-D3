@@ -41,13 +41,13 @@ const D3Sparkline = ({
       .area()
       .x((_, i) => x(i))
       .y0(height)
-      .y1((d) => y(d.value))
+      .y1((d) => y(d?.value))
       .curve(d3.curveBasis);
 
     const line = d3
       .line()
       .x((_, i) => x(i))
-      .y((d) => y(d.value))
+      .y((d) => y(d?.value))
       .curve(d3.curveBasis);
 
     const gradientId = `sparkline-gradient-${Math.random()
@@ -91,7 +91,7 @@ const D3Sparkline = ({
   }, [data, propWidth, height, color]);
 
 
-  if (!data || data.length === 0) {
+  if (!data || data.length===0) {
     return null;
   }
 

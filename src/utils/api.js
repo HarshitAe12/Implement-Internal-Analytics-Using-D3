@@ -1,4 +1,58 @@
+// login 
 
+import { apiFetch } from "./apiclient";
+
+const API = "https://api.proinsight.com";
+
+export async function loginUser({ username, password }) {
+  const res = await fetch(`${API}/mfa/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password }),
+  });
+  return res.json();
+}
+
+export async function setupMfa({ username, password }) {
+  const res = await fetch(`${API}/mfa/setup`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password }),
+  });
+  return res.json();
+}
+
+export async function verifyMfa({username, otp}) {
+  const res = await fetch(`${API}/mfa/verify_and_enable`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, otp }),
+  });
+
+  return res.json();
+}
+
+export async function verifyLogin({username, otp}) {
+  const res = await fetch(`${API}/mfa/verify_login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, otp }),
+  });
+
+  return res.json();
+}
+
+export async function refreshToken(refresh) {
+  const res = await fetch(`${API}/api/token/refresh/`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ refresh }),
+  });
+
+  return res.json();
+}
+
+// data 
 export default function getLastMonthDateRange() {
   const today = new Date();
   const firstDayLastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
@@ -20,7 +74,7 @@ export async function fetchMostViewedProfiles({
 } = {}) {
 
 
-  const res = await fetch(
+  const res = await apiFetch(
     `https://api.proinsight.com/analytics/most_viewed_profiles`, {
     method: "POST",
     headers: {
@@ -47,7 +101,7 @@ export async function fetchMostSearchUsers({
   end_date,
 } = {}) {
   try {
-    const res = await fetch(
+    const res = await apiFetch(
       `https://api.proinsight.com/analytics/most_searched_users`,
       {
         method: "POST",
@@ -78,7 +132,7 @@ export async function fetchProfessionAnalytics({ limit = 10, start_date, end_dat
 
   const url = `https://api.proinsight.com/analytics/profession_analytics`;
 
-  const res = await fetch(url, {
+  const res = await apiFetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -106,7 +160,7 @@ export async function fetchAllProfilesViewCount({
 } = {}) {
   try {
 
-    const res = await fetch(
+    const res = await apiFetch(
       `https://api.proinsight.com/analytics/all_profiles_view_count`,
       {
         method: "POST",
@@ -140,7 +194,7 @@ export async function fetchCityAnalitics({
 } = {}) {
   try {
 
-    const res = await fetch(
+    const res = await apiFetch(
       `https://api.proinsight.com/analytics/city_analytics`,
       {
         method: "POST",
@@ -172,7 +226,7 @@ export async function fetchSearchCount({
   end_date,
 } = {}) {
   try {
-    const response = await fetch(
+    const response = await apiFetch(
       "https://api.proinsight.com/analytics/search_count",
       {
         method: "POST",
@@ -203,7 +257,7 @@ export async function fetchConnections({
   end_date,
 } = {}) {
   try {
-    const response = await fetch(
+    const response = await apiFetch(
       "https://api.proinsight.com/analytics/graph_data",
       {
         method: "POST",
@@ -235,7 +289,7 @@ export async function fetchTotalViews({
   end_date,
 } = {}) {
   try {
-    const response = await fetch(
+    const response = await apiFetch(
       "https://api.proinsight.com/analytics/view_count",
       {
         method: "POST",
@@ -266,7 +320,7 @@ export async function fetchTopCity({
   end_date,
 } = {}) {
   try {
-    const response = await fetch(
+    const response = await apiFetch(
       "https://api.proinsight.com/analytics/city_count",
       {
         method: "POST",
@@ -297,7 +351,7 @@ export async function fetchTopProfession({
   end_date,
 } = {}) {
   try {
-    const response = await fetch(
+    const response = await apiFetch(
       "https://api.proinsight.com/analytics/profession_count",
       {
         method: "POST",
@@ -328,7 +382,7 @@ export async function fetchEngagement({
   end_date,
 } = {}) {
   try {
-    const response = await fetch(
+    const response = await apiFetch(
       "https://api.proinsight.com/analytics/total_engagements",
       {
         method: "POST",
@@ -358,7 +412,7 @@ export async function fetchEngagement({
 
 export async function fetchSearchQueriesTable() {
   try {
-    const response = await fetch(
+    const response = await apiFetch(
       "https://api.proinsight.com/analytics/search_query",
       {
         method: "GET",
@@ -385,7 +439,7 @@ export async function fetchAllCity({
   end_date,
 } = {}) {
   try {
-    const response = await fetch(
+    const response = await apiFetch(
       "https://api.proinsight.com/analytics/city_analytics",
       {
         method: "POST",
@@ -412,7 +466,7 @@ export async function fetchAllConnections({
   end_date,
 } = {}) {
   try {
-    const response = await fetch(
+    const response = await apiFetch(
       "https://api.proinsight.com/analytics/graph",
       {
         method: "POST",
@@ -436,7 +490,7 @@ export async function fetchAllCommunity({
   end_date,
 } = {}) {
   try {
-    const response = await fetch(
+    const response = await apiFetch(
       "https://api.proinsight.com/analytics/get_community_graph",
       {
         method: "POST",
@@ -449,7 +503,6 @@ export async function fetchAllCommunity({
       throw new Error(`All Community data failed: ${response.status}`);
     }
     const data = await response.json();
-    console.log("data----", data)
     return data;
   } catch (error) {
     console.error("[All Community data error]", error);
@@ -465,7 +518,7 @@ export async function fetchTotalViewsPerUser({
   user_id,
 } = {}) {
   try {
-    const response = await fetch(
+    const response = await apiFetch(
       "https://api.proinsight.com/analytics/view_count",
       {
         method: "POST",
@@ -475,7 +528,7 @@ export async function fetchTotalViewsPerUser({
         body: JSON.stringify({
           start_date,
           end_date,
-          user_id, 
+          user_id,
         }),
       }
     );
@@ -495,10 +548,10 @@ export async function fetchTotalViewsPerUser({
 export async function fetchSearchCountPerUser({
   start_date,
   end_date,
-   user_id
+  user_id
 } = {}) {
   try {
-    const response = await fetch(
+    const response = await apiFetch(
       "https://api.proinsight.com/analytics/search_count",
       {
         method: "POST",
@@ -508,7 +561,7 @@ export async function fetchSearchCountPerUser({
         body: JSON.stringify({
           start_date,
           end_date,
-           user_id
+          user_id
         }),
       }
     );
@@ -528,10 +581,10 @@ export async function fetchSearchCountPerUser({
 export async function fetchEngagementPerUser({
   start_date,
   end_date,
-   user_id
+  user_id
 } = {}) {
   try {
-    const response = await fetch(
+    const response = await apiFetch(
       "https://api.proinsight.com/analytics/total_engagements",
       {
         method: "POST",
@@ -541,7 +594,7 @@ export async function fetchEngagementPerUser({
         body: JSON.stringify({
           start_date,
           end_date,
-           user_id
+          user_id
         }),
       }
     );
@@ -562,15 +615,15 @@ export async function fetchAllCommunityPerUser({
   user_id
 } = {}) {
   try {
-    const response = await fetch(
+    const response = await apiFetch(
       "https://api.proinsight.com/analytics/get_community_graph",
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-           body: JSON.stringify({
-           user_id
+        body: JSON.stringify({
+          user_id
         })
       }
     );
@@ -578,7 +631,6 @@ export async function fetchAllCommunityPerUser({
       throw new Error(`All Community data failed: ${response.status}`);
     }
     const data = await response.json();
-    console.log("data----", data)
     return data;
   } catch (error) {
     console.error("[All Community data error]", error);
@@ -590,15 +642,15 @@ export async function fetchUserDetails({
   user_id
 } = {}) {
   try {
-    const response = await fetch(
+    const response = await apiFetch(
       "https://api.proinsight.com/get_user_details",
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-           body: JSON.stringify({
-           user_id
+        body: JSON.stringify({
+          user_id
         })
       }
     );
@@ -606,10 +658,90 @@ export async function fetchUserDetails({
       throw new Error(`User data failed: ${response.status}`);
     }
     const data = await response.json();
-    console.log("data----", data)
     return data;
   } catch (error) {
     console.error("[User data error]", error);
+    throw error;
+  }
+}
+
+export async function fetchViewedProfile({
+  user_id
+} = {}) {
+  try {
+    const response = await apiFetch(
+      "https://api.proinsight.com/analytics/most_viewed_profiles",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          user_id
+        })
+      }
+    );
+    if (!response.ok) {
+      throw new Error(`User data failed: ${response.status}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("[User data error]", error);
+    throw error;
+  }
+}
+
+export async function fetchSearchedUser({
+  user_id
+} = {}) {
+  try {
+    const response = await apiFetch(
+      "https://api.proinsight.com/analytics/most_searched_users",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          user_id
+        })
+      }
+    );
+    if (!response.ok) {
+      throw new Error(`User data failed: ${response.status}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("[fetch Search user error]", error);
+    throw error;
+  }
+}
+
+export async function fetchSearchedQuery({
+  user_id
+} = {}) {
+  try {
+    const response = await apiFetch(
+      "https://api.proinsight.com/analytics/search_query",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          user_id
+        })
+      }
+    );
+    if (!response.ok) {
+      throw new Error(`User data failed: ${response.status}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("[fetch Search Query error]", error);
     throw error;
   }
 }

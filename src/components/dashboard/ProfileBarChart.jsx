@@ -5,11 +5,27 @@ const ProfileBarChart = ({ data = [], title, valueKey = "views" }) => {
   const containerRef = useRef(null);
 
   useEffect(() => {
-    if (!data?.length || !containerRef.current) return;
+    if (!containerRef.current) return;
     const container = containerRef.current;
 
     // Clear previous chart
     d3.select(container).selectAll("*").remove();
+
+    // ✅ EMPTY STATE
+    if (!data?.length) {
+      d3.select(container)
+        .append("div")
+        .style("width", "100%")
+        .style("height", "200px")
+        .style("display", "flex")
+        .style("align-items", "center")
+        .style("justify-content", "center")
+        .style("color", "#888")
+        .style("font-size", "14px")
+        .text("No profile views found");
+
+      return;
+    }
 
     const margin = { top: 8, right: 60, bottom: 8, left: 120 };
     const width = container.clientWidth;
@@ -75,19 +91,24 @@ const ProfileBarChart = ({ data = [], title, valueKey = "views" }) => {
       .data(data)
       .enter()
       .append("text")
-      .attr("x", margin.left - 8)
+      .attr("class", "name")
+      .attr("x", margin.left - 10)
       .attr("y", (d) => y(d.name) + y.bandwidth() / 2)
       .attr("dy", "0.35em")
       .attr("text-anchor", "end")
-      .attr("fill", "hsl(210, 40%, 90%)")
-      .attr("font-size", 12)
-      .attr("font-weight", 500)
-      .text((d) => (d.name.length > 14 ? d.name.slice(0, 13) + "…" : d.name));
+      .attr("fill", "gray")
+      .attr("font-size", 14)
+      .attr("font-weight", 400)
+      .attr("font-family", "Inter, system-ui, sans-serif")
+      .text((d) =>
+        d.name.length > 18 ? d.name.slice(0, 17) + "…" : d.name
+      );
+
   }, [data, valueKey]);
 
   return (
     <div className="rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm p-5">
-     <h3 className="text-sm font-medium text-muted-foreground mb-3 font-mono tracking-wide uppercase">
+      <h3 className="text-sm font-medium text-muted-foreground mb-3 font-mono tracking-wide uppercase">
         {title}
       </h3>
       <div ref={containerRef} style={{ width: "100%" }} />

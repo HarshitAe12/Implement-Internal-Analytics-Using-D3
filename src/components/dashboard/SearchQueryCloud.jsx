@@ -102,7 +102,7 @@ const SearchQueryCloud = ({ data = [], title }) => {
   return (
     <div className="rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm p-6">
       
-      {/* 🎯 Gradient Title */}
+      {/*  Gradient Title */}
       <h3 className="text-sm font-medium text-muted-foreground mb-3 font-mono tracking-wide uppercase">
         {title}
       </h3>
