@@ -176,7 +176,6 @@ export default function Login() {
       if (res?.access) {
         localStorage.setItem("access_token", res.access);
         localStorage.setItem("refresh_token", res.refresh);
-        // console.log("token", localStorage)
         showToast.success("Login successful");
         navigate("/")
       } else {
@@ -301,6 +300,10 @@ export default function Login() {
 
               <button onClick={verifyEnableMfa} disabled={loading}>
                 {loading ? <span className="spinner"></span> : "Verify & Enable"}
+              </button>
+
+                 <button className="skip-btn " style={{background:"rgb(40, 167, 69)"}} onClick={handleSkip}>
+                Skip For Now
               </button>
             </>
           )}
