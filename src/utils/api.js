@@ -2,7 +2,7 @@
 
 import { apiFetch } from "./apiclient";
 
-const API = "https://api.proinsight.com";
+const API = import.meta.env.VITE_API_URL;
 
 export async function loginUser({ username, password }) {
   const res = await fetch(`${API}/mfa/login`, {
@@ -75,7 +75,7 @@ export async function fetchMostViewedProfiles({
 
 
   const res = await apiFetch(
-    `https://api.proinsight.com/analytics/most_viewed_profiles`, {
+    `${API}/analytics/most_viewed_profiles`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -102,7 +102,7 @@ export async function fetchMostSearchUsers({
 } = {}) {
   try {
     const res = await apiFetch(
-      `https://api.proinsight.com/analytics/most_searched_users`,
+      `${API}/analytics/most_searched_users`,
       {
         method: "POST",
         headers: {
@@ -130,7 +130,7 @@ export async function fetchMostSearchUsers({
 
 export async function fetchProfessionAnalytics({ limit = 10, start_date, end_date } = {}) {
 
-  const url = `https://api.proinsight.com/analytics/profession_analytics`;
+  const url = `${API}/analytics/profession_analytics`;
 
   const res = await apiFetch(url, {
     method: "POST",
@@ -161,7 +161,7 @@ export async function fetchAllProfilesViewCount({
   try {
 
     const res = await apiFetch(
-      `https://api.proinsight.com/analytics/all_profiles_view_count`,
+      `${API}/analytics/all_profiles_view_count`,
       {
         method: "POST",
         headers: {
@@ -195,7 +195,7 @@ export async function fetchCityAnalitics({
   try {
 
     const res = await apiFetch(
-      `https://api.proinsight.com/analytics/city_analytics`,
+      `${API}/analytics/city_analytics`,
       {
         method: "POST",
         headers: {
@@ -227,7 +227,7 @@ export async function fetchSearchCount({
 } = {}) {
   try {
     const response = await apiFetch(
-      "https://api.proinsight.com/analytics/search_count",
+      `${API}/analytics/search_count`,
       {
         method: "POST",
         headers: {
@@ -258,7 +258,7 @@ export async function fetchConnections({
 } = {}) {
   try {
     const response = await apiFetch(
-      "https://api.proinsight.com/analytics/graph_data",
+      `${API}/analytics/graph_data`,
       {
         method: "POST",
         headers: {
@@ -290,7 +290,7 @@ export async function fetchTotalViews({
 } = {}) {
   try {
     const response = await apiFetch(
-      "https://api.proinsight.com/analytics/view_count",
+      `${API}/analytics/view_count`,
       {
         method: "POST",
         headers: {
@@ -321,7 +321,7 @@ export async function fetchTopCity({
 } = {}) {
   try {
     const response = await apiFetch(
-      "https://api.proinsight.com/analytics/city_count",
+      `${API}/analytics/city_count`,
       {
         method: "POST",
         headers: {
@@ -352,7 +352,7 @@ export async function fetchTopProfession({
 } = {}) {
   try {
     const response = await apiFetch(
-      "https://api.proinsight.com/analytics/profession_count",
+      `${API}/analytics/profession_count`,
       {
         method: "POST",
         headers: {
@@ -383,7 +383,7 @@ export async function fetchEngagement({
 } = {}) {
   try {
     const response = await apiFetch(
-      "https://api.proinsight.com/analytics/total_engagements",
+      `${API}/analytics/total_engagements`,
       {
         method: "POST",
         headers: {
@@ -413,7 +413,7 @@ export async function fetchEngagement({
 export async function fetchSearchQueriesTable() {
   try {
     const response = await apiFetch(
-      "https://api.proinsight.com/analytics/search_query",
+      `${API}/analytics/search_query`,
       {
         method: "GET",
         headers: {
@@ -440,7 +440,7 @@ export async function fetchAllCity({
 } = {}) {
   try {
     const response = await apiFetch(
-      "https://api.proinsight.com/analytics/city_analytics",
+      `${API}/analytics/city_analytics`,
       {
         method: "POST",
         headers: {
@@ -467,7 +467,7 @@ export async function fetchAllConnections({
 } = {}) {
   try {
     const response = await apiFetch(
-      "https://api.proinsight.com/analytics/graph",
+      `${API}/analytics/graph`,
       {
         method: "POST",
         headers: {
@@ -491,7 +491,7 @@ export async function fetchAllCommunity({
 } = {}) {
   try {
     const response = await apiFetch(
-      "https://api.proinsight.com/analytics/get_community_graph",
+      `${API}/analytics/get_community_graph`,
       {
         method: "POST",
         headers: {
@@ -519,7 +519,7 @@ export async function fetchTotalViewsPerUser({
 } = {}) {
   try {
     const response = await apiFetch(
-      "https://api.proinsight.com/analytics/view_count",
+      `${API}/analytics/view_count`,
       {
         method: "POST",
         headers: {
@@ -552,7 +552,7 @@ export async function fetchSearchCountPerUser({
 } = {}) {
   try {
     const response = await apiFetch(
-      "https://api.proinsight.com/analytics/search_count",
+      `${API}/analytics/search_count`,
       {
         method: "POST",
         headers: {
@@ -585,7 +585,7 @@ export async function fetchEngagementPerUser({
 } = {}) {
   try {
     const response = await apiFetch(
-      "https://api.proinsight.com/analytics/total_engagements",
+      `${API}/analytics/total_engagements`,
       {
         method: "POST",
         headers: {
@@ -616,7 +616,7 @@ export async function fetchAllCommunityPerUser({
 } = {}) {
   try {
     const response = await apiFetch(
-      "https://api.proinsight.com/analytics/get_community_graph",
+      `${API}/analytics/get_community_graph`,
       {
         method: "POST",
         body: JSON.stringify({
@@ -640,7 +640,7 @@ export async function fetchUserDetails({
 } = {}) {
   try {
     const response = await apiFetch(
-      "https://api.proinsight.com/get_user_details",
+      `${API}/get_user_details`,
       {
         method: "POST",
         headers: {
@@ -667,7 +667,7 @@ export async function fetchViewedProfile({
 } = {}) {
   try {
     const response = await apiFetch(
-      "https://api.proinsight.com/analytics/most_viewed_profiles",
+      `${API}/analytics/most_viewed_profiles`,
       {
         method: "POST",
         headers: {
@@ -694,7 +694,7 @@ export async function fetchSearchedUser({
 } = {}) {
   try {
     const response = await apiFetch(
-      "https://api.proinsight.com/analytics/most_searched_users",
+      `${API}/analytics/most_searched_users`,
       {
         method: "POST",
         headers: {
@@ -721,7 +721,7 @@ export async function fetchSearchedQuery({
 } = {}) {
   try {
     const response = await apiFetch(
-      "https://api.proinsight.com/analytics/search_query",
+      `${API}/analytics/search_query`,
       {
         method: "POST",
         headers: {
