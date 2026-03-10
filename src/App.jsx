@@ -21,7 +21,9 @@ const Login=lazy(()=>import("./pages/Login"))
         <Routes>
           <Route
             path="/login"
-            element={token ? <Navigate to="/" replace /> : <Login />}
+            element={token ? <Navigate to="/" replace /> : <Login />
+              
+            }
           />
 
           {/* Protected Routes */}
